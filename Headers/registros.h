@@ -16,6 +16,8 @@ struct registro_cabecalho {
     char encadeamentoPilha;
     //encadeamentoPilha deve ser inicializado com valor -1
 };
+//Sempre que for inicializar: .proxRRN = 0; .nroRegRem = 0; .encadeamentoPilha = -1;
+
 
 struct registro_dados {
     int idPoPs;
@@ -27,7 +29,7 @@ struct registro_dados {
     char encadeamentoPilha;
     //encadeamentoPilha deve ser inicializado com valor -1
 };
-
+//Sempre que for inicializar: .encadeamentoPilha = -1;
 
 
 

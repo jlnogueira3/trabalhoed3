@@ -7,4 +7,5 @@ set(CMAKE_C_STANDARD 11)
 add_executable(trabalhoed3
         Source/main.c
         Headers/registros.h
+        Source/fornecidas.c
 )
