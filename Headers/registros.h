@@ -1,10 +1,9 @@
 //
 // Created by joao-lucas-nogueira on 08/09/2026.
 //
-#include <stdio.h>
 #ifndef TRABALHOED3_REGISTROS_H
 #define TRABALHOED3_REGISTROS_H
-
+#include <stdio.h>
 struct registro_cabecalho {
     char status;
     int topo_pilha;
@@ -13,6 +12,9 @@ struct registro_cabecalho {
     int nroRegRem;
     //sempre que for utilizar, inicializar nroRegRem com valor 0
     int nroPares;
+    char removido;
+    char encadeamentoPilha;
+    //encadeamentoPilha deve ser inicializado com valor -1
 };
 
 struct registro_dados {
@@ -21,6 +23,9 @@ struct registro_dados {
     // idPoPs e idPoPsConectado não podem assumir valores nulos
     int velocidade;
     char unidadeMedida;
+    char removido;
+    char encadeamentoPilha;
+    //encadeamentoPilha deve ser inicializado com valor -1
 };
 
 
