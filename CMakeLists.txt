@@ -8,4 +8,5 @@ add_executable(trabalhoed3
         Source/main.c
         Headers/registros.h
         Source/fornecidas.c
+        Source/implementadas.c
 )
