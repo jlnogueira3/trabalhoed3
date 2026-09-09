@@ -78,7 +78,7 @@ void funcionalidade2(const char *binario,  registro_cabecalho *cabecalho) {
     char linha[100];
     fgets(linha,sizeof(linha),f3);
     while (fgets(linha,sizeof(linha),f3) != NULL){
-        struct registro_dados dados;
+        registro_dados dados;
 
         sscanf(linha,"%d,%d,%d,%c",
     &dados.idPoPs,
