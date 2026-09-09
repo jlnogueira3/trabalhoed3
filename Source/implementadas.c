@@ -39,8 +39,8 @@ void funcionalidade1(const char *csv,const char *binario,struct registro_cabecal
 
         /*Antes de começar a ler o registro devemos verificar se o registro
          está registrado como removido
-        */
-        /*Preciso perguntar ao Renan para saber como que vou saber isso
+
+        Preciso perguntar ao Renan para saber como que vou saber isso
          */
 
 
