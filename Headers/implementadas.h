@@ -7,9 +7,7 @@
 
 struct chave_valor {
     char chave[50];
-
-    int valorint;
-    char valorchar[50];
+    char valor[50];
 };
 
 void funcionalidade1(

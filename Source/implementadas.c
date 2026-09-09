@@ -125,20 +125,20 @@ void funcionalidade3(const char *binario, struct registro_cabecalho *cabecalho, 
 
 
     long int n_int = strtol(n,NULL,10);
-    struct chave_valor *p = calloc(n_int, sizeof(struct chave_valor));
 
-    //Antes de começar a pegar as entradas
-    //precisamos entender o funcionamento
-    int quantidade_pares = 0;
+    for (int i = 0; i < n_int; i++) {
+        int quantidade_pares;
+        scanf("%d", &quantidade_pares);
 
-    while (n_int >= 0) {
-        scanf("%d",
-        &quantidade_pares);
-        
+        struct chave_valor *p =
+            calloc(quantidade_pares, sizeof(struct chave_valor));
+        for (int j = 0; j < quantidade_pares; j++) {
+            scanf("%s", p[j].chave);
+            scanf("%s", p[j].valor);
+        }
 
+        free(p);
+        }
 
-
-        n_int --;
-    }
     fclose(f4);
 }
