@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "../Headers/registros.h"
 #include "fornecidas.c"
+#include "../Headers/implementadas.h"
 
 
 
@@ -63,9 +64,6 @@ void funcionalidade1(const char *csv,char *binario,struct registro_cabecalho *ca
 }
 
 
-
-
-
 void funcionalidade2(const char *binario, struct registro_cabecalho *cabecalho) {
     FILE *f3 = fopen(binario, "rb");
     if (f3 == NULL) {
@@ -111,8 +109,36 @@ void funcionalidade2(const char *binario, struct registro_cabecalho *cabecalho) 
         } else {
             printf("%c ", dados.unidadeMedida);
         }
-        
     }
     fclose(f3);
+}
 
+void funcionalidade3(const char *binario, struct registro_cabecalho *cabecalho, char *n) {
+    FILE *f4 = fopen(binario, "rb");
+    if (f4 == NULL) {
+        printf("Falha no processamento do arquivo.");
+        cabecalho->status = '0';
+    }
+    // Como está tudo certo com o arquivo vamos começar a manipulação, para isso devemos pensar em
+    //como receber os argumentos e parâmetros
+    cabecalho->status = '1';
+
+
+    long int n_int = strtol(n,NULL,10);
+    struct chave_valor *p = calloc(n_int, sizeof(struct chave_valor));
+
+    //Antes de começar a pegar as entradas
+    //precisamos entender o funcionamento
+    int quantidade_pares = 0;
+
+    while (n_int >= 0) {
+        scanf("%d",
+        &quantidade_pares);
+        
+
+
+
+        n_int --;
+    }
+    fclose(f4);
 }

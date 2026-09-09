@@ -18,7 +18,6 @@ int main(void) {
         cabecalho.encadeamentoPilha = -1
     };
     scanf("%99s %99s %99s", opcao,arg1,arg2);
-
     long int opcao_int;
     opcao_int = strtol(opcao,NULL,10);
 
@@ -38,7 +37,12 @@ int main(void) {
             break;
             return 0;
         case 2:
-            //funcionalidade1(arg1,arg2)
+            /* Diferente da funcionalidade 1, a funcionalidade 2 recebe apenas o argumento
+             * arg1 e o registro de cabecalho
+             */
+            funcionalidade2(arg1,&cabecalho);
+            break;
+            return 0;
         case 3:
             //funcionalidade1(arg1,arg2)
         case 4:

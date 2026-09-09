@@ -9,4 +9,5 @@ add_executable(trabalhoed3
         Headers/registros.h
         Source/fornecidas.c
         Source/implementadas.c
+        Headers/implementadas.h
 )
