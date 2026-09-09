@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../Headers/registros.h"
+#include "fornecidas.c"
 
 
 
-void funcionalidade1(const char *csv,const char *binario,struct registro_cabecalho *cabecalho){
+void funcionalidade1(const char *csv,char *binario,struct registro_cabecalho *cabecalho){
     // Primeiro devemos nos certificar de que o arquivo está completo
     FILE *f2 = fopen(csv, "rb");
     if (f2 == NULL) {
@@ -25,7 +26,10 @@ void funcionalidade1(const char *csv,const char *binario,struct registro_cabecal
     }
     cabecalho->status = '1';
 
-    // Já que ocorreu tudo normal podemos iniciar a leitura do arquivo
+    /* Já que ocorreu tudo normal podemos iniciar a leitura do arquivo,
+     Para isso vamos ler conforme o csv padrão indicado pelo csv padrão
+
+    */
 
     char linha[100];
     fgets(linha,sizeof(linha),f2);
@@ -34,25 +38,23 @@ void funcionalidade1(const char *csv,const char *binario,struct registro_cabecal
     while (fgets(linha,sizeof(linha),f2) != NULL) {
         struct registro_dados dados;
 
-        dados.removido = '0';
-        dados.encadeamentoPilha = -1;
-
-        /*Antes de começar a ler o registro devemos verificar se o registro
-         está registrado como removido
-
-        Preciso perguntar ao Renan para saber como que vou saber isso
-         */
 
 
         sscanf(linha,"%d,%d,%d,%c",
             &dados.idPoPs,
             &dados.idPoPsConectado,
             &dados.velocidade,
-            &dados.unidadeMedida);
+            &dados.unidadeMedida
+            );
+
+        //Como a documentação do trabalho
+        // garante que o .csv não tem campos vazios
+        // não verificaremos se foram lidos os 4 campos
+
+
+
 
         // Leitura do arquivo csv no formato indicado do registro de dados
-        fwrite(&dados.removido, sizeof(char), 1, f1);
-        fwrite(&dados.encadeamentoPilha, sizeof(int), 1, f1);
         fwrite(&dados.idPoPs, sizeof(int), 1, f1);
         fwrite(&dados.idPoPsConectado, sizeof(int), 1, f1);
         fwrite(&dados.velocidade, sizeof(int), 1, f1);
@@ -60,8 +62,9 @@ void funcionalidade1(const char *csv,const char *binario,struct registro_cabecal
         // Escrita do arquivo .csv no binário
 
     }
-
-
     fclose(f1);
     fclose(f2);
+// modifiquei a parte do binário, colocando apenas char *binario ao invés de
+    // "const char binario" a fim de adaptar a função a "fornecidas.c"
+    BinarioNaTela(binario);
 }
