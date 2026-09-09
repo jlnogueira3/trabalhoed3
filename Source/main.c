@@ -15,7 +15,7 @@ int main(void) {
         cabecalho.proxRRN = 0,
         cabecalho.nroRegRem = 0,
         cabecalho.nroPares = 0,
-        .encadeamentoPilha = -1
+        cabecalho.encadeamentoPilha = -1
     };
     scanf("%99s %99s %99s", opcao,arg1,arg2);
 

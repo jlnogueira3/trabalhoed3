@@ -3,7 +3,6 @@
 //
 #ifndef TRABALHOED3_REGISTROS_H
 #define TRABALHOED3_REGISTROS_H
-#include <stdio.h>
 struct registro_cabecalho {
     char status;
     int topo_pilha;
