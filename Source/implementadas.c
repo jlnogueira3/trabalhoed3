@@ -9,7 +9,7 @@
 
 
 
-void funcionalidade1(const char *csv,char *binario,struct registro_cabecalho *cabecalho){
+void funcionalidade1(const char *csv,char *binario, registro_cabecalho *cabecalho){
     // Primeiro devemos nos certificar de que o arquivo está completo
     FILE *f2 = fopen(csv, "rb");
     if (f2 == NULL) {
@@ -35,7 +35,7 @@ void funcionalidade1(const char *csv,char *binario,struct registro_cabecalho *ca
     fgets(linha,sizeof(linha),f2);
 
     while (fgets(linha,sizeof(linha),f2) != NULL) {
-        struct registro_dados dados;
+        registro_dados dados;
 
         sscanf(linha,"%d,%d,%d,%c",
             &dados.idPoPs,
@@ -64,7 +64,7 @@ void funcionalidade1(const char *csv,char *binario,struct registro_cabecalho *ca
 }
 
 
-void funcionalidade2(const char *binario, struct registro_cabecalho *cabecalho) {
+void funcionalidade2(const char *binario,  registro_cabecalho *cabecalho) {
     FILE *f3 = fopen(binario, "rb");
     if (f3 == NULL) {
         printf("Registro inexistente.");
@@ -113,7 +113,7 @@ void funcionalidade2(const char *binario, struct registro_cabecalho *cabecalho) 
     fclose(f3);
 }
 
-void funcionalidade3(const char *binario, struct registro_cabecalho *cabecalho, char *n) {
+void funcionalidade3(const char *binario,  registro_cabecalho *cabecalho, char *n) {
     FILE *f4 = fopen(binario, "rb");
     if (f4 == NULL) {
         printf("Falha no processamento do arquivo.");
@@ -141,4 +141,55 @@ void funcionalidade3(const char *binario, struct registro_cabecalho *cabecalho, 
         }
 
     fclose(f4);
+}
+
+void funcionalidade4(const char *binario, int rrn){
+    FILE* f; 
+    f = fopen(binario, "rb");
+    if(f == NULL){
+        printf("Falha no processamento do arqvuivo");
+        return; 
+        }
+    registro_cabecalho cabecalho;
+    
+    //LEITURA DO CABECALHO (obs fread retorna a quantidade de elementos lidos)
+    if(fread(&cabecalho.status, sizeof(char), 1, f) != 1){
+        printf("Falha no processamento do arquivo");
+        fclose(f);
+        return; 
+        }       //leitura do byte 0
+    if(fread(&cabecalho.topo_pilha, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo");
+        fclose(f);
+        return; 
+        }     //leitura dos bytes 1 a 4
+    if(fread(&cabecalho.proxRRN, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo");
+        fclose(f);
+        return; 
+        }        //leitura dos bytes 5 a 8
+    if(fread(&cabecalho.nroRegRem, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo");
+        fclose(f);
+        return; 
+        }      //leitura dos bytes 9 a 12
+    if(fread(&cabecalho.nroPares, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo");
+        fclose(f);
+        return; 
+        }          //leitura dos bytes 13 a 16
+
+    if(0 > rrn || rrn >= cabecalho.proxRRN){
+        printf("Registro inexistente");
+        fclose(f);
+        return;
+    }
+    long int pos = 17 + rrn*18;
+    if(fseek(f, pos, 0) != 1){
+        printf("Falha no processamento do arquivo");
+        fclose(f);
+        return; 
+        }  
+    
+    
 }

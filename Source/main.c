@@ -9,7 +9,7 @@ int main(void) {
     char opcao[100];
     char arg1[100];
     char arg2[100];
-    struct  registro_cabecalho cabecalho={
+    registro_cabecalho cabecalho={
         cabecalho.status = '0',
         cabecalho.topo_pilha = -1,
         cabecalho.proxRRN = 0,
