@@ -46,7 +46,7 @@ int main(void) {
             funcionalidade3(arg1, &cabecalho, arg2);
             break;
         case 4:
-            int rrn = (int)strol(arg2, NULL, 10);   //string -> long -> int (cast)
+            int rrn = (int)strtol(arg2, NULL, 10);   //string -> long -> int (cast)
             funcionalidade4(arg1, rrn);
             break;
         case 5:
