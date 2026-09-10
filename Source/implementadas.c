@@ -26,6 +26,7 @@ void funcionalidade1(const char *csv, char *binario,
         printf("Falha no processamento do arquivo.");
         fclose(leitura);
         return;
+    }
         //Agora que está tudo correto,
         // devemos inicializar o registro de cabeçalho conforme
         // a especificação do trabalho
@@ -131,7 +132,6 @@ void funcionalidade1(const char *csv, char *binario,
         // modifiquei a parte do binário, colocando apenas char *binario ao invés de
         // "const char binario" a fim de adaptar a função a "fornecidas.c"
         BinarioNaTela(binario);
-    }
 }
 
 
