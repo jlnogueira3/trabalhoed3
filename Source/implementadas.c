@@ -10,58 +10,128 @@
 #include "../Headers/implementadas.h"
 
 
-void funcionalidade1(const char *csv,char *binario, registro_cabecalho *cabecalho){
+void funcionalidade1(const char *csv, char *binario,
+                     registro_cabecalho *cabecalho) {
     // Primeiro devemos nos certificar de que o arquivo está completo
     FILE *leitura = fopen(csv, "rb");
+
     if (leitura == NULL) {
         printf("Falha no processamento do arquivo.");
-        cabecalho->status = '0';
         return;
     }
 
     FILE *escrita = fopen(binario, "w+b");
+
     if (escrita == NULL) {
         printf("Falha no processamento do arquivo.");
-        cabecalho->status = '0';
-        fclose(escrita);
+        fclose(leitura);
         return;
+        //Agora que está tudo correto,
+        // devemos inicializar o registro de cabeçalho conforme
+        // a especificação do trabalho
+
+        cabecalho->status = '0';
+        cabecalho->topo_pilha = -1;
+        cabecalho->proxRRN = 0;
+        cabecalho->nroRegRem = 0;
+        cabecalho->nroPares = 0;
+
+        /*
+         * Escrevemos inicialmente o cabeçalho com status '0',
+         * pois o arquivo ainda está sendo construído
+         */
+        fwrite(&cabecalho->status, sizeof(char), 1, escrita);
+        fwrite(&cabecalho->topo_pilha, sizeof(int), 1, escrita);
+        fwrite(&cabecalho->proxRRN, sizeof(int), 1, escrita);
+        fwrite(&cabecalho->nroRegRem, sizeof(int), 1, escrita);
+        fwrite(&cabecalho->nroPares, sizeof(int), 1, escrita);
+
+        // Agora partimos para a leitura em si do arquivo
+
+        char linha[100];
+
+        fgets(linha, sizeof(linha), leitura);
+
+        while (fgets(linha, sizeof(linha), leitura) != NULL) {
+
+            registro_dados dados;
+
+            // DEVEMOS inicializar conforme especificado no trabalho
+            dados.removido = '0';
+            dados.encadeamentoPilha = -1;
+            dados.velocidade = -1;
+            dados.unidadeMedida = '$';
+
+            /*
+             * Separamos manualmente os campos porque velocidade
+             * e unidadeMedida podem estar vazios no CSV
+             */
+            char *campo1 = linha;
+            char *virgula1 = strchr(campo1, ',');
+            *virgula1 = '\0';
+            char *campo2 = virgula1 + 1;
+            char *virgula2 = strchr(campo2, ',');
+            *virgula2 = '\0';
+            char *campo3 = virgula2 + 1;
+            char *virgula3 = strchr(campo3, ',');
+            *virgula3 = '\0';
+            char *campo4 = virgula3 + 1;
+
+            /*
+             * Retira a quebra de linha do último campo
+             */
+            campo4[strcspn(campo4, "\r\n")] = '\0';
+            dados.idPoPs = atoi(campo1);
+            dados.idPoPsConectado = atoi(campo2);
+            if (campo3[0] != '\0') {
+                dados.velocidade = atoi(campo3);
+            }
+            if (campo4[0] != '\0') {
+                dados.unidadeMedida = campo4[0];
+            }
+
+
+            // Agora partimos para a escrita do arquivo csv
+            // Um detalhe interessante é que eu (João) fiquei me batendo para
+            // chegar em fwrite e dar certo, antes lia apenas lixo de memória
+            // usando o fgets() e rodava um monte de 0 no runcodes
+            fwrite(&dados.removido, sizeof(char), 1, escrita);
+            fwrite(&dados.encadeamentoPilha, sizeof(int), 1, escrita);
+            fwrite(&dados.idPoPs, sizeof(int), 1, escrita);
+            fwrite(&dados.idPoPsConectado, sizeof(int), 1, escrita);
+            fwrite(&dados.velocidade, sizeof(int), 1, escrita);
+            fwrite(&dados.unidadeMedida, sizeof(char), 1, escrita);
+            // Escrita do arquivo .csv no binário
+            /*
+             * Cada novo registro ocupa um novo RRN.
+             * Como o enunciado garante que os pares não são repetidos,
+             * cada registro também adiciona um novo par.
+             */
+            cabecalho->proxRRN++;
+            cabecalho->nroPares++;
+        }
+        /*
+         * Ao finalizar corretamente a construção do arquivo,
+         * atualizamos o status para consistente
+         */
+        cabecalho->status = '1';
+
+        //
+        // Voltamos para o início do arquivo para atualizar
+        // os 17 bytes do cabeçalho
+
+        fseek(escrita, 0, SEEK_SET);
+        fwrite(&cabecalho->status, sizeof(char), 1, escrita);
+        fwrite(&cabecalho->topo_pilha, sizeof(int), 1, escrita);
+        fwrite(&cabecalho->proxRRN, sizeof(int), 1, escrita);
+        fwrite(&cabecalho->nroRegRem, sizeof(int), 1, escrita);
+        fwrite(&cabecalho->nroPares, sizeof(int), 1, escrita);
+        fclose(escrita);
+        fclose(leitura);
+        // modifiquei a parte do binário, colocando apenas char *binario ao invés de
+        // "const char binario" a fim de adaptar a função a "fornecidas.c"
+        BinarioNaTela(binario);
     }
-    cabecalho->status = '1';
-
-    /* Já que ocorreu tudo normal podemos iniciar a leitura do arquivo,
-     Para isso vamos ler conforme o csv padrão indicado pelo csv padrão
-
-    */
-    char linha[100];
-    fgets(linha,sizeof(linha),leitura);
-
-    while (fgets(linha,sizeof(linha),leitura) != NULL) {
-        registro_dados dados;
-
-        sscanf(linha,"%d,%d,%d,%c",
-            &dados.idPoPs,
-            &dados.idPoPsConectado,
-            &dados.velocidade,
-            &dados.unidadeMedida
-            );
-
-        //Como a documentação do trabalho
-        // garante que o .csv não tem campos vazios
-        // não verificaremos se foram lidos os 4 campos
-
-        // Leitura do arquivo csv no formato indicado do registro de dados
-        fwrite(&dados.idPoPs, sizeof(int), 1, escrita);
-        fwrite(&dados.idPoPsConectado, sizeof(int), 1, escrita);
-        fwrite(&dados.velocidade, sizeof(int), 1, escrita);
-        fwrite(&dados.unidadeMedida, sizeof(char), 1, escrita);
-        // Escrita do arquivo .csv no binário
-
-    }
-    fclose(escrita);
-    fclose(leitura);
-// modifiquei a parte do binário, colocando apenas char *binario ao invés de
-    // "const char binario" a fim de adaptar a função a "fornecidas.c"
-    BinarioNaTela(binario);
 }
 
 
@@ -316,13 +386,16 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
 void funcionalidade4(const char *binario, int rrn){
     FILE* f; 
     f = fopen(binario, "rb");
+
+    // Primeiro devemos verificar, assim como nas funcionalidades anteriores, a consistência do
+    // arquivo
     if(f == NULL){
         printf("Falha no processamento do arquivo.\n");
         return; 
         }
     registro_cabecalho cabecalho;
     
-    //LEITURA DO CABECALHO (obs fread retorna a quantidade de elementos lidos)
+    //Agora partimos para a  (obs fread retorna a quantidade de elementos lidos)
     if(fread(&cabecalho.status, sizeof(char), 1, f) != 1){
         printf("Falha no processamento do arquivo.\n");
         fclose(f);
