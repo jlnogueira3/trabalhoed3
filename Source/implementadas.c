@@ -12,18 +12,18 @@
 
 void funcionalidade1(const char *csv,char *binario, registro_cabecalho *cabecalho){
     // Primeiro devemos nos certificar de que o arquivo está completo
-    FILE *f2 = fopen(csv, "rb");
-    if (f2 == NULL) {
+    FILE *leitura = fopen(csv, "rb");
+    if (leitura == NULL) {
         printf("Falha no processamento do arquivo.");
         cabecalho->status = '0';
         return;
     }
 
-    FILE *f1 = fopen(binario, "w+b");
-    if (f1 == NULL) {
+    FILE *escrita = fopen(binario, "w+b");
+    if (escrita == NULL) {
         printf("Falha no processamento do arquivo.");
         cabecalho->status = '0';
-        fclose(f2);
+        fclose(escrita);
         return;
     }
     cabecalho->status = '1';
@@ -33,9 +33,9 @@ void funcionalidade1(const char *csv,char *binario, registro_cabecalho *cabecalh
 
     */
     char linha[100];
-    fgets(linha,sizeof(linha),f2);
+    fgets(linha,sizeof(linha),leitura);
 
-    while (fgets(linha,sizeof(linha),f2) != NULL) {
+    while (fgets(linha,sizeof(linha),leitura) != NULL) {
         registro_dados dados;
 
         sscanf(linha,"%d,%d,%d,%c",
@@ -50,55 +50,83 @@ void funcionalidade1(const char *csv,char *binario, registro_cabecalho *cabecalh
         // não verificaremos se foram lidos os 4 campos
 
         // Leitura do arquivo csv no formato indicado do registro de dados
-        fwrite(&dados.idPoPs, sizeof(int), 1, f1);
-        fwrite(&dados.idPoPsConectado, sizeof(int), 1, f1);
-        fwrite(&dados.velocidade, sizeof(int), 1, f1);
-        fwrite(&dados.unidadeMedida, sizeof(char), 1, f1);
+        fwrite(&dados.idPoPs, sizeof(int), 1, escrita);
+        fwrite(&dados.idPoPsConectado, sizeof(int), 1, escrita);
+        fwrite(&dados.velocidade, sizeof(int), 1, escrita);
+        fwrite(&dados.unidadeMedida, sizeof(char), 1, escrita);
         // Escrita do arquivo .csv no binário
 
     }
-    fclose(f1);
-    fclose(f2);
+    fclose(escrita);
+    fclose(leitura);
 // modifiquei a parte do binário, colocando apenas char *binario ao invés de
     // "const char binario" a fim de adaptar a função a "fornecidas.c"
     BinarioNaTela(binario);
 }
 
 
-void funcionalidade2(const char *binario,  registro_cabecalho *cabecalho) {
+void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
+
+    // Primeiro devemos verificar se o arquivo está consistente
     FILE *f3 = fopen(binario, "rb");
+
     if (f3 == NULL) {
-        printf("Registro inexistente.");
-        cabecalho->status = '0';
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    // A partir disso devemos ler o status do cabecalho do arquivo
+    // se der erro vamos imprimir a mensagem de falha
+    if (fread(&cabecalho->status, sizeof(char), 1, f3) != 1) {
+        printf("Falha no processamento do arquivo.\n");
         fclose(f3);
         return;
     }
-    cabecalho->status = '1';
-    /* Já que ocorreu tudo certo, podemos iniciar a leitura
-     */
-    char linha[100];
-    fgets(linha,sizeof(linha),f3);
-    while (fgets(linha,sizeof(linha),f3) != NULL){
+
+    if (cabecalho->status == '0') {
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f3);
+        return;
+    }
+
+    fread(&cabecalho->topo_pilha, sizeof(int), 1, f3);
+    fread(&cabecalho->proxRRN, sizeof(int), 1, f3);
+    fread(&cabecalho->nroRegRem, sizeof(int), 1, f3);
+    fread(&cabecalho->nroPares, sizeof(int), 1, f3);
+
+    // COmo lemos o cabeçalho podemos seguir
+
+    int encontrou = 0;
+
+    for (int i = 0; i < cabecalho->proxRRN; i++) {
+
         registro_dados dados;
 
-        sscanf(linha,"%d,%d,%d,%c",
-    &dados.idPoPs,
-    &dados.idPoPsConectado,
-    &dados.velocidade,
-    &dados.unidadeMedida);
+        // Primeiro campo de cada registro
+        if (fread(&dados.removido, sizeof(char), 1, f3) != 1)
+            break;
 
+        fread(&dados.encadeamentoPilha, sizeof(int), 1, f3);
+        fread(&dados.idPoPs, sizeof(int), 1, f3);
+        fread(&dados.idPoPsConectado, sizeof(int), 1, f3);
+        fread(&dados.velocidade, sizeof(int), 1, f3);
+        fread(&dados.unidadeMedida, sizeof(char), 1, f3);
+
+        // Ignora registros logicamente removidos
+        if (dados.removido == '1')
+            continue;
+
+        encontrou = 1;
         if (dados.idPoPs == -1) {
             printf("NULO ");
         } else {
             printf("%d ", dados.idPoPs);
         }
-
         if (dados.idPoPsConectado == -1) {
             printf("NULO ");
         } else {
             printf("%d ", dados.idPoPsConectado);
         }
-
         if (dados.velocidade == -1) {
             printf("NULO ");
         } else {
@@ -106,11 +134,18 @@ void funcionalidade2(const char *binario,  registro_cabecalho *cabecalho) {
         }
 
         if (dados.unidadeMedida == '$') {
-            printf("NULO ");
+            printf("NULO");
         } else {
-            printf("%c ", dados.unidadeMedida);
+            printf("\"%c\"", dados.unidadeMedida);
         }
+
+        printf("\n");
     }
+
+    if (encontrou == 0) {
+        printf("Registro inexistente.\n");
+    }
+
     fclose(f3);
 }
 
