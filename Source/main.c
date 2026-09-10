@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "../Headers/registros.h"
-#include "implementadas.c"
+#include <stdlib.h>
+#include "../Headers/implementadas.h"
 
 
 
@@ -43,7 +43,8 @@ int main(void) {
             break;
             return 0;
         case 3:
-            //funcionalidade1(arg1,arg2)
+            funcionalidade3(arg1, &cabecalho, arg2);
+            break;
         case 4:
             //funcionalidade1(arg1,arg2);
         case 5:

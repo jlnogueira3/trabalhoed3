@@ -3,10 +3,11 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include "../Headers/registros.h"
-#include "fornecidas.c"
-#include "../Headers/implementadas.h"
+#include <string.h>
 
+#include "../Headers/registros.h"
+#include "../Headers/fornecidas.h"
+#include "../Headers/implementadas.h"
 
 
 void funcionalidade1(const char *csv,char *binario, registro_cabecalho *cabecalho){
