@@ -306,7 +306,7 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
         }
 
         free(p);
-        printf("/n");
+        printf("\n");
     }
 
 
