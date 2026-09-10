@@ -113,32 +113,165 @@ void funcionalidade2(const char *binario,  registro_cabecalho *cabecalho) {
     fclose(f3);
 }
 
-void funcionalidade3(const char *binario,  registro_cabecalho *cabecalho, char *n) {
+void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) {
+
+    //Primeiro devemos verificar a integridade do arquivo e se está tudo correto
     FILE *f4 = fopen(binario, "rb");
     if (f4 == NULL) {
-        printf("Falha no processamento do arquivo.");
-        cabecalho->status = '0';
+        printf("Falha no processamento do arquivo.\n");
+        return;
     }
-    // Como está tudo certo com o arquivo vamos começar a manipulação, para isso devemos pensar em
-    //como receber os argumentos e parâmetros
-    cabecalho->status = '1';
+
+    // Verifica status do arquivo
+    fread(&cabecalho->status, sizeof(char), 1, f4);
+
+    if (cabecalho->status != '1') {
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f4);
+        return;
+    }
+
+    long int n_int = strtol(n, NULL, 10);
 
 
-    long int n_int = strtol(n,NULL,10);
-
+    // Cada iteração representa uma busca
     for (int i = 0; i < n_int; i++) {
         int quantidade_pares;
         scanf("%d", &quantidade_pares);
 
         struct chave_valor *p =
             calloc(quantidade_pares, sizeof(struct chave_valor));
+
+        if (p == NULL) {
+            printf("Falha no processamento do arquivo.\n");
+            fclose(f4);
+            return;
+        }
+
+
+        //Devemos agora ler os filtros passados utilizando a funcao ScanQuoteString que
+        // lê de um jeito mais "clean"
+
         for (int j = 0; j < quantidade_pares; j++) {
             scanf("%s", p[j].chave);
-            scanf("%s", p[j].valor);
+            ScanQuoteString(p[j].valor);
+        }
+
+        //Antes de comecar a percorrer o arquivo devemos pular o cabeçalho
+        fseek(f4, 17, SEEK_SET);
+        int match = 0;
+
+        while (1) {
+            registro_dados dados3;
+            if (fread(&dados3.removido,sizeof(char), 1, f4) != 1) {
+                break;
+            }
+            fread(&dados3.encadeamentoPilha,sizeof(int), 1, f4);
+            fread(&dados3.idPoPs,sizeof(int), 1, f4);
+            fread(&dados3.idPoPsConectado,sizeof(int), 1, f4);
+            fread(&dados3.velocidade,sizeof(int), 1, f4);
+            fread(&dados3.unidadeMedida,sizeof(char), 1, f4);
+
+
+            // Ignora registro removido
+            if (dados3.removido == '1') {
+                continue;
+            }
+
+            /*
+             * Começamos supondo que o registro
+             * satisfaz todos os critérios.
+             */
+            int filtro = 1;
+
+
+         //Agora que o arquivo está integro devemos passar campo a campo verificando da mesma maneira
+         // que fizemos na funcionalidade 2 conferindo se estava vazio e comparando com os valores passados
+         // Para isso devemos passar campo a campo fazendo  o cara-crachá da função
+            for (int j = 0; j < quantidade_pares; j++) {
+                if (strcmp(p[j].chave, "idPoPs") == 0) {
+                    int valor = (int) strtol(p[j].valor, NULL, 10);
+                    if (dados3.idPoPs != valor) {
+                        filtro = 0;
+                        break;
+                    }
+
+                }
+                else if (strcmp(p[j].chave,"idPoPsConectado") == 0) {
+                    int valor = (int) strtol(p[j].valor, NULL, 10);
+                    if (dados3.idPoPsConectado != valor) {
+                        filtro = 0;
+                        break;
+                    }
+                }
+
+                else if (strcmp(p[j].chave,"velocidade") == 0) {
+                    if (p[j].valor[0] == '\0') {
+                        if (dados3.velocidade != -1) {
+                        filtro = 0;
+                        break;
+                        }
+                    }
+                    else {
+                        int valor = (int) strtol(p[j].valor,NULL, 10);
+                        if (dados3.velocidade != valor) {
+                        filtro = 0;
+                        break;
+                        }
+                    }
+                }
+
+                else if (strcmp(p[j].chave, "unidadeMedida") == 0) {
+                    if (p[j].valor[0] == '\0') {
+                        if (dados3.unidadeMedida != '$') {
+                        filtro = 0;
+                        break;
+                        }
+                    }
+
+                    else {
+                        if (dados3.unidadeMedida != p[j].valor[0]) {
+                        filtro = 0;
+                        break;
+                        }
+                    }
+                }
+            }
+
+
+    // Conforme inicializamos o valor "filtro" anteriormente na nossa função
+    // Agora vamos utilizar como parâmetro para printar
+
+            if (filtro == 1) {
+                match = 1;
+                // Aqui já sabemos que o idPoPs não pode ser nulo por isso seguimos diretamente
+                printf("%d ", dados3.idPoPs);
+                printf("%d ", dados3.idPoPsConectado);
+
+                if (dados3.velocidade == -1) {
+                    printf("NULO ");
+                }
+                else {
+                    printf("%d ", dados3.velocidade);
+                }
+                if (dados3.unidadeMedida == '$') {
+                    printf("NULO\n");
+                }
+                else {
+                    printf("\"%c\"\n",
+                           dados3.unidadeMedida);
+                }
+            }
+        }
+
+
+        if (match == 0) {
+            printf("Registro inexistente.\n");
         }
 
         free(p);
-        }
+    }
+
 
     fclose(f4);
 }
@@ -147,7 +280,7 @@ void funcionalidade4(const char *binario, int rrn){
     FILE* f; 
     f = fopen(binario, "rb");
     if(f == NULL){
-        printf("Falha no processamento do arqvuivo");
+        printf("Falha no processamento do arquivo");
         return; 
         }
     registro_cabecalho cabecalho;
