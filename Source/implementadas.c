@@ -281,49 +281,105 @@ void funcionalidade4(const char *binario, int rrn){
     FILE* f; 
     f = fopen(binario, "rb");
     if(f == NULL){
-        printf("Falha no processamento do arquivo");
+        printf("Falha no processamento do arquivo.\n");
         return; 
         }
     registro_cabecalho cabecalho;
     
     //LEITURA DO CABECALHO (obs fread retorna a quantidade de elementos lidos)
     if(fread(&cabecalho.status, sizeof(char), 1, f) != 1){
-        printf("Falha no processamento do arquivo");
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
         }       //leitura do byte 0
     if(fread(&cabecalho.topo_pilha, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo");
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
         }     //leitura dos bytes 1 a 4
     if(fread(&cabecalho.proxRRN, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo");
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
         }        //leitura dos bytes 5 a 8
     if(fread(&cabecalho.nroRegRem, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo");
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
         }      //leitura dos bytes 9 a 12
     if(fread(&cabecalho.nroPares, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo");
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
         }          //leitura dos bytes 13 a 16
 
-    if(0 > rrn || rrn >= cabecalho.proxRRN){
-        printf("Registro inexistente");
+    if(cabecalho.status != '1'){       //arquivo inconsistente nao pode ser consultado
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return;
     }
-    long int pos = 17 + rrn*18;
-    if(fseek(f, pos, 0) != 1){
-        printf("Falha no processamento do arquivo");
+
+    if(0 > rrn || rrn >= cabecalho.proxRRN){    // 0 <= rrn < proxRRN
+        printf("Registro inexistente.\n");
+        fclose(f);
+        return;
+    }
+    long int pos = 17L + (long)rrn*18L;
+    if(fseek(f, pos, 0) != 0){      //fseek retorna 0 quando funciona
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        } 
+    
+    //LEITURA DO DADO
+    registro_dados dado;
+    if(fread(&dado.removido, sizeof(char), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
         }  
-    
-    
+    if(fread(&dado.encadeamentoPilha, sizeof(int), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }  
+    if(fread(&dado.idPoPs, sizeof(int), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }  
+    if(fread(&dado.idPoPsConectado, sizeof(int), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }  
+    if(fread(&dado.velocidade, sizeof(int), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }  
+    if(fread(&dado.unidadeMedida, sizeof(char), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return;
+    }
+
+    //print do dado
+    if(dado.removido == '1')
+        printf("Registro inexistente.");    // nao precisa de \n pq ja tem antes do fim da funcao
+    else{
+        if(dado.velocidade == -1 && dado.unidadeMedida == '$'){
+            printf("%d %d NULO NULO", dado.idPoPs, dado.idPoPsConectado);
+        }
+        else if(dado.velocidade == -1){
+            printf("%d %d NULO \"%c\"", dado.idPoPs, dado.idPoPsConectado, dado.unidadeMedida);
+        }
+        else if(dado.unidadeMedida == '$'){
+            printf("%d %d %d NULO", dado.idPoPs, dado.idPoPsConectado, dado.velocidade);
+        }
+        else
+            printf("%d %d %d \"%c\"", dado.idPoPs, dado.idPoPsConectado, dado.velocidade, dado.unidadeMedida);
+    }
+    fclose(f);
+    printf("\n");
 }
