@@ -179,7 +179,6 @@ void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
         encontrou = 1;
 
         print_dados(dados);
-        printf("\n");
     }
 
     if (encontrou == 0) {
