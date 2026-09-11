@@ -14,7 +14,7 @@ void escrever_cabeçalho(const registro_cabecalho *cabecalho,FILE *arquivo);
 // de dados
 void escrever_dados(registro_dados dados, FILE *arquivo);
 void print_dados(registro_dados dados);
-void leitura_dados(registro_dados dados, FILE *arquivo);
+void leitura_dados(registro_dados *dados, FILE *arquivo);
 int filtrar_dados(struct chave_valor *p, int quantidade_pares, struct registro_dados dados, int filtro);
 
 

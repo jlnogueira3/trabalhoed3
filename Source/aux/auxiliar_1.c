@@ -75,12 +75,12 @@ void print_dados(registro_dados dados) {
 
 // Agora devemos implementar a leitura dos dados
 
-void leitura_dados(registro_dados dados, FILE *arquivo) {
-    fread(&dados.encadeamentoPilha,sizeof(int), 1,arquivo );
-    fread(&dados.idPoPs,sizeof(int), 1, arquivo);
-    fread(&dados.idPoPsConectado,sizeof(int), 1, arquivo);
-    fread(&dados.velocidade,sizeof(int), 1, arquivo);
-    fread(&dados.unidadeMedida,sizeof(char), 1, arquivo);
+void leitura_dados(registro_dados *dados, FILE *arquivo) {
+    fread(&dados->encadeamentoPilha, sizeof(int), 1, arquivo);
+    fread(&dados->idPoPs, sizeof(int), 1, arquivo);
+    fread(&dados->idPoPsConectado, sizeof(int), 1, arquivo);
+    fread(&dados->velocidade, sizeof(int), 1, arquivo);
+    fread(&dados->unidadeMedida, sizeof(char), 1, arquivo);
 }
 
 
