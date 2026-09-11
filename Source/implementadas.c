@@ -233,7 +233,7 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
             if (fread(&dados3.removido,sizeof(char), 1, f4) != 1) {
                 break;
             }
-            leitura_dados(dados3, f4);
+            leitura_dados(&dados3, f4);
 
             // Ignora registro removido
             if (dados3.removido == '1') {
