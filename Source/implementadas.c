@@ -127,13 +127,19 @@ void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
         return;
     }
 
-    // A partir disso devemos ler o status do cabecalho do arquivo
-    // se der erro vamos imprimir a mensagem de falha
-    if (fread(&cabecalho->status, sizeof(char), 1, f3) != 1) {
+    if (fread(&cabecalho->status, sizeof(char), 1, f3) != 1 ||
+    fread(&cabecalho->topo_pilha, sizeof(int), 1, f3) != 1 ||
+    fread(&cabecalho->proxRRN, sizeof(int), 1, f3) != 1 ||
+    fread(&cabecalho->nroRegRem, sizeof(int), 1, f3) != 1 ||
+    fread(&cabecalho->nroPares, sizeof(int), 1, f3) != 1) {
+
         printf("Falha no processamento do arquivo.\n");
         fclose(f3);
         return;
     }
+
+    // A partir disso devemos ler o status do cabecalho do arquivo
+    // se der erro vamos imprimir a mensagem de falha
 
     if (cabecalho->status == '0') {
         printf("Falha no processamento do arquivo.\n");
@@ -141,31 +147,37 @@ void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
         return;
     }
 
-    inicializar_cabeçalho(cabecalho);
 
     // COmo lemos o cabeçalho podemos seguir
 
     int encontrou = 0;
 
     for (int i = 0; i < cabecalho->proxRRN; i++) {
-        // Primeiro devemos inicializar o registro de dados
+
         registro_dados dados = {
-            .idPoPs = dados.removido = '0',
-            .idPoPsConectado = dados.encadeamentoPilha = -1,
-            .velocidade = dados.velocidade = -1,
-            .unidadeMedida = dados.unidadeMedida = '$',
+            .idPoPs = -1,
+            .idPoPsConectado = -1,
+            .velocidade = -1,
+            .unidadeMedida = '$',
+            .removido = '0',
+            .encadeamentoPilha = -1
         };
 
-        // Primeiro campo de cada registro
-        if (fread(&dados.removido, sizeof(char), 1, f3) != 1)
+        // Lê o primeiro byte do registro
+        if (fread(&dados.removido, sizeof(char), 1, f3) != 1) {
             break;
+        }
 
-        escrever_dados(dados, f3);
+        // Lê os outros 17 bytes do registro
+        leitura_dados(&dados, f3);
 
-        // Ignora registros logicamente removidos
-        if (dados.removido == '1')
+        // Registro logicamente removido não é mostrado
+        if (dados.removido == '1') {
             continue;
+        }
+
         encontrou = 1;
+
         print_dados(dados);
         printf("\n");
     }

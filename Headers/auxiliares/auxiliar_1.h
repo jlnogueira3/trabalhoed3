@@ -10,6 +10,8 @@
 // cabeçalho
 void inicializar_cabeçalho(registro_cabecalho *cabecalho);
 void escrever_cabeçalho(const registro_cabecalho *cabecalho,FILE *arquivo);
+
+
 // Agora partimos para a inicialização e a escrita do registro
 // de dados
 void escrever_dados(registro_dados dados, FILE *arquivo);

@@ -27,11 +27,13 @@ void inicializar_cabeçalho(registro_cabecalho *cabecalho) {
          */
 }
 
-void escrever_cabeçalho(const registro_cabecalho *cabecalho,FILE *arquivo) {
+void escrever_cabeçalho(const registro_cabecalho *cabecalho,
+                        FILE *arquivo) {
+
     fwrite(&cabecalho->status, sizeof(char), 1, arquivo);
     fwrite(&cabecalho->topo_pilha, sizeof(int), 1, arquivo);
-    fwrite(&cabecalho->nroRegRem, sizeof(int), 1, arquivo);
     fwrite(&cabecalho->proxRRN, sizeof(int), 1, arquivo);
+    fwrite(&cabecalho->nroRegRem, sizeof(int), 1, arquivo);
     fwrite(&cabecalho->nroPares, sizeof(int), 1, arquivo);
 }
 
@@ -69,7 +71,7 @@ void print_dados(registro_dados dados) {
     if (dados.unidadeMedida == '$') {
         printf("NULO");
     } else {
-        printf("\"%c\"", dados.unidadeMedida);
+        printf("\"%c\"\n", dados.unidadeMedida);
     }
 }
 
