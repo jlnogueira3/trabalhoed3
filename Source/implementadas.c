@@ -31,12 +31,12 @@ void funcionalidade1(const char *csv, char *binario,
         // devemos inicializar o registro de cabeçalho conforme
         // a especificação do trabalho
 
-        inicializar_cabeçalho(cabecalho);
+        inicializar_cabecalho(cabecalho);
         // As funções auxiliares usadas nesse arquivo estão em
         // Source/auxiliares/auxiliar_1.c
 
 
-        escrever_cabeçalho(cabecalho,escrita);
+        escrever_cabecalho(cabecalho,escrita);
 
         // Agora partimos para a leitura em si do arquivo
 
@@ -108,7 +108,7 @@ void funcionalidade1(const char *csv, char *binario,
 
         fseek(escrita, 0, SEEK_SET);
 
-        escrever_cabeçalho(cabecalho,escrita);
+        escrever_cabecalho(cabecalho,escrita);
         fclose(escrita);
         fclose(leitura);
         // modifiquei a parte do binário, colocando apenas char *binario ao invés de
@@ -287,32 +287,11 @@ void funcionalidade4(const char *binario, int rrn){
         }
     registro_cabecalho cabecalho;
     
-    //Agora partimos para a  (obs fread retorna a quantidade de elementos lidos)
-    if(fread(&cabecalho.status, sizeof(char), 1, f) != 1){
+    if(leitura_cabecalho(f, &cabecalho) == 0){
         printf("Falha no processamento do arquivo.\n");
         fclose(f);
-        return; 
-        }       //leitura do byte 0
-    if(fread(&cabecalho.topo_pilha, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }     //leitura dos bytes 1 a 4
-    if(fread(&cabecalho.proxRRN, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }        //leitura dos bytes 5 a 8
-    if(fread(&cabecalho.nroRegRem, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }      //leitura dos bytes 9 a 12
-    if(fread(&cabecalho.nroPares, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }          //leitura dos bytes 13 a 16
+        return;
+    }
 
     if(cabecalho.status != '1'){       //arquivo inconsistente nao pode ser consultado
         printf("Falha no processamento do arquivo.\n");
@@ -326,7 +305,7 @@ void funcionalidade4(const char *binario, int rrn){
         return;
     }
     long int pos = 17L + (long)rrn*18L;
-    if(fseek(f, pos, 0) != 0){      //fseek retorna 0 quando funciona
+    if(fseek(f, pos, SEEK_SET) != 0){      //fseek retorna 0 quando funciona
         printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
@@ -334,110 +313,69 @@ void funcionalidade4(const char *binario, int rrn){
     
     //LEITURA DO DADO
     registro_dados dado;
-    if(fread(&dado.removido, sizeof(char), 1, f) != 1){
+    if(leitura_dados(&dado, f) != 1){
         printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
-        }  
-    if(fread(&dado.encadeamentoPilha, sizeof(int), 1, f) != 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }  
-    if(fread(&dado.idPoPs, sizeof(int), 1, f) != 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }  
-    if(fread(&dado.idPoPsConectado, sizeof(int), 1, f) != 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }  
-    if(fread(&dado.velocidade, sizeof(int), 1, f) != 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }  
-    if(fread(&dado.unidadeMedida, sizeof(char), 1, f) != 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return;
-    }
-
+        } 
+        
     //print do dado
     if(dado.removido == '1')
-        printf("Registro inexistente.");    // nao precisa de \n pq ja tem antes do fim da funcao
+        printf("Registro inexistente.\n");
     else{
-        if(dado.velocidade == -1 && dado.unidadeMedida == '$'){
-            printf("%d %d NULO NULO", dado.idPoPs, dado.idPoPsConectado);
-        }
-        else if(dado.velocidade == -1){
-            printf("%d %d NULO \"%c\"", dado.idPoPs, dado.idPoPsConectado, dado.unidadeMedida);
-        }
-        else if(dado.unidadeMedida == '$'){
-            printf("%d %d %d NULO", dado.idPoPs, dado.idPoPsConectado, dado.velocidade);
-        }
-        else
-            printf("%d %d %d \"%c\"", dado.idPoPs, dado.idPoPsConectado, dado.velocidade, dado.unidadeMedida);
+        print_dados(dado);
     }
     fclose(f);
-    printf("\n");
 }
 
 void funcionalidade5(const char*binario, int n){
     FILE *f;
-    f = fopen(binario, "rb");
+    f = fopen(binario, "r+b");
     if(f == NULL){
         printf("Falha no processamento do arquivo.\n");
         return; 
         }
-    //leitura do cabecalho igual na func 4
+
+        //leitura do cabecalho
     registro_cabecalho cabecalho;
-    if(fread(&cabecalho.status, sizeof(char), 1, f) != 1){
+    if(leitura_cabecalho(f, &cabecalho) != 1){
         printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return; 
-        }       //leitura do byte 0
-    if(fread(&cabecalho.topo_pilha, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }     //leitura dos bytes 1 a 4
-    if(fread(&cabecalho.proxRRN, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }        //leitura dos bytes 5 a 8
-    if(fread(&cabecalho.nroRegRem, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }      //leitura dos bytes 9 a 12
-    if(fread(&cabecalho.nroPares, sizeof(int), 1, f)!= 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
-        return; 
-        }          //leitura dos bytes 13 a 16
+    }
 
     if(cabecalho.status != '1'){       //arquivo inconsistente nao pode ser consultado
         printf("Falha no processamento do arquivo.\n");
         fclose(f);
         return;
     }
+
     //0 no status do cabecalho pq estamos editando
     cabecalho.status = '0';
-    fwrite(&cabecalho.status, sizeof(char), 1, f);
+    if(fseek(f, 0, SEEK_SET) != 0 || fwrite(&cabecalho.status, sizeof(char), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return;
+    }
 
     registro_dados dado;    //variavel auxiliar
     for(int i = 0; i<n; i++){
-        int quantidade;
-        scanf("%d", &quantidade);   //quantidade de criterios desta solicitacao
 
+        //quantidade de criterios desta solicitacao
+        int quantidade;
+        scanf("%d", &quantidade);
+        if(quantidade <= 0){  
+            printf("Falha no processamento do arquivo.\n");
+            fclose(f);
+            return;
+        }
         struct chave_valor *criterios;
         criterios = calloc(quantidade, sizeof(struct chave_valor));
-        if(criterios == NULL)
+        if(criterios == NULL){
+            printf("Falha no processamento do arquivo.\n");
+            fclose(f);
             return; //falha na alocacao
+        }
         /*struct chave_valor {
         char chave[50];
         char valor[50];
@@ -450,7 +388,7 @@ void funcionalidade5(const char*binario, int n){
 
         for(int rrn = 0; rrn < cabecalho.proxRRN; rrn++){
             long int pos = 17L +(long)rrn*18L;
-            if(fseek(f, pos, 0)!=0 || fread(&dado.removido, sizeof(char), 1, f) != 1){
+            if(fseek(f, pos, SEEK_SET)!=0 || leitura_dados(&dado, f) != 1){
                 free(criterios);
                 fclose(f);
                 printf("Falha no processamento do arquivo.\n");
@@ -458,9 +396,68 @@ void funcionalidade5(const char*binario, int n){
             }
             if(dado.removido == '1')    //se tiver sido removido, vai pro proximo
                 continue;
-        }
+            int tester = atende_criterios(&dado, criterios, quantidade);
+            if (tester == 0)
+                continue; // vai pro proximo registro
+            dado.removido = '1';
+            dado.encadeamentoPilha = cabecalho.topo_pilha;
 
+            //volta pro inicio do registro e grava os campos de controle
+            if(fseek(f, pos, SEEK_SET) != 0 ||
+            fwrite(&dado.removido, sizeof(char), 1, f) != 1 ||
+            fwrite(&dado.encadeamentoPilha, sizeof(int), 1, f) != 1){
+                free(criterios);
+                fclose(f);
+                printf("Falha no processamento do arquivo.\n");
+                return;
+            }
+
+            //preenche os campos de dados com lixo
+            char lixo = '$';
+            for(int k = 0; k < 13; k++){
+                if(fwrite(&lixo, sizeof(char), 1, f) != 1){
+                    free(criterios);
+                    fclose(f);
+                    printf("Falha no processamento do arquivo.\n");
+                    return;
+                }
+            }
+
+            //atualiza a pilha e os contadores
+            cabecalho.topo_pilha = rrn;
+            cabecalho.nroRegRem++;
+            cabecalho.nroPares--;
+        }
         free(criterios);
     }
-}
 
+    //grava o cabecalho atualizado ainda com status '0'
+    if(fseek(f, 0, SEEK_SET) != 0 ||
+       fwrite(&cabecalho.status, sizeof(char), 1, f) != 1 ||
+       fwrite(&cabecalho.topo_pilha, sizeof(int), 1, f) != 1 ||
+       fwrite(&cabecalho.proxRRN, sizeof(int), 1, f) != 1 ||
+       fwrite(&cabecalho.nroRegRem, sizeof(int), 1, f) != 1 ||
+       fwrite(&cabecalho.nroPares, sizeof(int), 1, f) != 1 ||
+       fflush(f) != 0){
+        fclose(f);
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    //marca como consistente depois de gravar as alteracoes
+    cabecalho.status = '1';
+    if(fseek(f, 0, SEEK_SET) != 0 ||
+       fwrite(&cabecalho.status, sizeof(char), 1, f) != 1 ||
+       fflush(f) != 0){
+        fclose(f);
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    if(fclose(f) != 0){
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    BinarioNaTela((char *)binario);
+}

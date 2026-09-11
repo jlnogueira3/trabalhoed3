@@ -14,7 +14,7 @@
 // Implementação das funções auxiliares
 
 //Começamos com a função atualizar cabecalho
-void inicializar_cabeçalho(registro_cabecalho *cabecalho) {
+void inicializar_cabecalho(registro_cabecalho *cabecalho) {
     cabecalho->status = '0';
     cabecalho->topo_pilha = -1;
     cabecalho->proxRRN = 0;
@@ -27,7 +27,7 @@ void inicializar_cabeçalho(registro_cabecalho *cabecalho) {
          */
 }
 
-void escrever_cabeçalho(const registro_cabecalho *cabecalho,
+void escrever_cabecalho(const registro_cabecalho *cabecalho,
                         FILE *arquivo) {
 
     fwrite(&cabecalho->status, sizeof(char), 1, arquivo);
@@ -77,16 +77,27 @@ void print_dados(registro_dados dados) {
 
 // Agora devemos implementar a leitura dos dados
 
-void leitura_dados(registro_dados *dados, FILE *arquivo) {
-    fread(&dados->encadeamentoPilha, sizeof(int), 1, arquivo);
-    fread(&dados->idPoPs, sizeof(int), 1, arquivo);
-    fread(&dados->idPoPsConectado, sizeof(int), 1, arquivo);
-    fread(&dados->velocidade, sizeof(int), 1, arquivo);
-    fread(&dados->unidadeMedida, sizeof(char), 1, arquivo);
+int leitura_dados(registro_dados *dados, FILE *arquivo) {
+    if (fread(&dados->removido, sizeof(char), 1, arquivo) != 1)
+        return 0;
+
+    if (fread(&dados->encadeamentoPilha, sizeof(int), 1, arquivo) != 1)
+        return 0;
+
+    if (fread(&dados->idPoPs, sizeof(int), 1, arquivo) != 1)
+        return 0;
+
+    if (fread(&dados->idPoPsConectado, sizeof(int), 1, arquivo) != 1)
+        return 0;
+
+    if (fread(&dados->velocidade, sizeof(int), 1, arquivo) != 1)
+        return 0;
+
+    if (fread(&dados->unidadeMedida, sizeof(char), 1, arquivo) != 1)
+        return 0;
+
+    return 1;
 }
-
-
-
 
 int filtrar_dados(struct chave_valor *p,
             int quantidade_pares,
@@ -156,5 +167,63 @@ int filtrar_dados(struct chave_valor *p,
     return filtro;
 }
 
+int leitura_cabecalho(FILE *f, registro_cabecalho *cabecalho) {
+    if (fread(&cabecalho->status, sizeof(char), 1, f) != 1)
+        return 0;
 
+    if (fread(&cabecalho->topo_pilha, sizeof(int), 1, f) != 1)
+        return 0;
 
+    if (fread(&cabecalho->proxRRN, sizeof(int), 1, f) != 1)
+        return 0;
+
+    if (fread(&cabecalho->nroRegRem, sizeof(int), 1, f) != 1)
+        return 0;
+
+    if (fread(&cabecalho->nroPares, sizeof(int), 1, f) != 1)
+        return 0;
+
+    return 1;
+}
+
+int atende_criterios(const registro_dados *dado, const struct chave_valor *criterios, int quantidade){
+    int tester = 1;
+    for(int j = 0; j < quantidade; j++){
+        if (strcmp(criterios[j].chave, "idPoPs") == 0) {
+            long int temp = strtol(criterios[j].valor, NULL, 10);
+            if (dado->idPoPs != temp)
+                tester = 0;
+        }
+
+        else if (strcmp(criterios[j].chave, "idPoPsConectado") == 0) {
+            long int temp = strtol(criterios[j].valor, NULL, 10);
+            if (dado->idPoPsConectado != temp)
+                tester = 0;
+        }
+
+        else if(strcmp(criterios[j].chave, "velocidade") == 0) {
+            long int temp;
+            if (criterios[j].valor[0] == '\0')
+                temp = -1; // nulo
+            else
+                temp = strtol(criterios[j].valor, NULL, 10);
+            if (dado->velocidade != temp)
+                tester = 0;
+        }
+        else if(strcmp(criterios[j].chave, "unidadeMedida") == 0) {
+            char temp;
+            if(criterios[j].valor[0] == '\0')
+                temp = '$'; // nulo
+            else
+                temp = criterios[j].valor[0];
+            if(dado->unidadeMedida != temp)
+                tester = 0;
+        }
+        else{
+            tester = 0; // nome de campo desconhecido
+        }
+        if (tester == 0)
+            break; // algum criterio deu pau, nn precisa verificar os outros
+    }
+    return tester;
+}
