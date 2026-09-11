@@ -11,4 +11,6 @@ add_executable(trabalhoed3
         Source/implementadas.c
         Headers/implementadas.h
         Headers/fornecidas.h
+        Headers/auxiliares/auxiliar_1.h
+        Source/aux/auxiliar_1.c
 )

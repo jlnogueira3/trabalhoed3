@@ -8,7 +8,7 @@
 #include "../Headers/registros.h"
 #include "../Headers/fornecidas.h"
 #include "../Headers/implementadas.h"
-
+#include "../Headers/auxiliares/auxiliar_1.h"
 
 void funcionalidade1(const char *csv, char *binario,
                      registro_cabecalho *cabecalho) {
@@ -31,21 +31,12 @@ void funcionalidade1(const char *csv, char *binario,
         // devemos inicializar o registro de cabeçalho conforme
         // a especificação do trabalho
 
-        cabecalho->status = '0';
-        cabecalho->topo_pilha = -1;
-        cabecalho->proxRRN = 0;
-        cabecalho->nroRegRem = 0;
-        cabecalho->nroPares = 0;
+        inicializar_cabeçalho(cabecalho);
+        // As funções auxiliares usadas nesse arquivo estão em
+        // Source/aux/auxiliar_1.c
 
-        /*
-         * Escrevemos inicialmente o cabeçalho com status '0',
-         * pois o arquivo ainda está sendo construído
-         */
-        fwrite(&cabecalho->status, sizeof(char), 1, escrita);
-        fwrite(&cabecalho->topo_pilha, sizeof(int), 1, escrita);
-        fwrite(&cabecalho->proxRRN, sizeof(int), 1, escrita);
-        fwrite(&cabecalho->nroRegRem, sizeof(int), 1, escrita);
-        fwrite(&cabecalho->nroPares, sizeof(int), 1, escrita);
+
+        escrever_cabeçalho(cabecalho,escrita);
 
         // Agora partimos para a leitura em si do arquivo
 
@@ -53,65 +44,59 @@ void funcionalidade1(const char *csv, char *binario,
 
         fgets(linha, sizeof(linha), leitura);
 
-        while (fgets(linha, sizeof(linha), leitura) != NULL) {
+    while (fgets(linha, sizeof(linha), leitura) != NULL) {
 
-            registro_dados dados;
+        registro_dados dados = {
+            .idPoPs = dados.removido = '0',
+            .idPoPsConectado = dados.encadeamentoPilha = -1,
+            .velocidade = dados.velocidade = -1,
+            .unidadeMedida = dados.unidadeMedida = '$',
+        };
 
-            // DEVEMOS inicializar conforme especificado no trabalho
-            dados.removido = '0';
-            dados.encadeamentoPilha = -1;
-            dados.velocidade = -1;
-            dados.unidadeMedida = '$';
+        // DEVEMOS inicializar conforme especificado no trabalho
+        /*
+         * Separamos manualmente os campos porque velocidade
+         * e unidadeMedida podem estar vazios no CSV
+         */
+        char *campo1 = linha;
+        char *virgula1 = strchr(campo1, ',');
+        *virgula1 = '\0';
+        char *campo2 = virgula1 + 1;
+        char *virgula2 = strchr(campo2, ',');
+        *virgula2 = '\0';
+        char *campo3 = virgula2 + 1;
+        char *virgula3 = strchr(campo3, ',');
+        *virgula3 = '\0';
+        char *campo4 = virgula3 + 1;
 
-            /*
-             * Separamos manualmente os campos porque velocidade
-             * e unidadeMedida podem estar vazios no CSV
-             */
-            char *campo1 = linha;
-            char *virgula1 = strchr(campo1, ',');
-            *virgula1 = '\0';
-            char *campo2 = virgula1 + 1;
-            char *virgula2 = strchr(campo2, ',');
-            *virgula2 = '\0';
-            char *campo3 = virgula2 + 1;
-            char *virgula3 = strchr(campo3, ',');
-            *virgula3 = '\0';
-            char *campo4 = virgula3 + 1;
-
-            /*
+        /*
              * Retira a quebra de linha do último campo
              */
-            campo4[strcspn(campo4, "\r\n")] = '\0';
-            dados.idPoPs = atoi(campo1);
-            dados.idPoPsConectado = atoi(campo2);
-            if (campo3[0] != '\0') {
-                dados.velocidade = atoi(campo3);
-            }
-            if (campo4[0] != '\0') {
-                dados.unidadeMedida = campo4[0];
-            }
-
-
-            // Agora partimos para a escrita do arquivo csv
-            // Um detalhe interessante é que eu (João) fiquei me batendo para
-            // chegar em fwrite e dar certo, antes lia apenas lixo de memória
-            // usando o fgets() e rodava um monte de 0 no runcodes
-            fwrite(&dados.removido, sizeof(char), 1, escrita);
-            fwrite(&dados.encadeamentoPilha, sizeof(int), 1, escrita);
-            fwrite(&dados.idPoPs, sizeof(int), 1, escrita);
-            fwrite(&dados.idPoPsConectado, sizeof(int), 1, escrita);
-            fwrite(&dados.velocidade, sizeof(int), 1, escrita);
-            fwrite(&dados.unidadeMedida, sizeof(char), 1, escrita);
-            // Escrita do arquivo .csv no binário
-            /*
-             * Cada novo registro ocupa um novo RRN.
-             * Como o enunciado garante que os pares não são repetidos,
-             * cada registro também adiciona um novo par.
-             */
-            cabecalho->proxRRN++;
-            cabecalho->nroPares++;
+        campo4[strcspn(campo4, "\r\n")] = '\0';
+        dados.idPoPs = atoi(campo1);
+        dados.idPoPsConectado = atoi(campo2);
+        if (campo3[0] != '\0') {
+            dados.velocidade = atoi(campo3);
         }
-        /*
+        if (campo4[0] != '\0') {
+            dados.unidadeMedida = campo4[0];
+        }
+
+
+        // Agora partimos para a escrita do arquivo csv
+        // Um detalhe interessante é que eu (João) fiquei me batendo para
+        // chegar em fwrite e dar certo, antes lia apenas lixo de memória
+        // usando o fgets() e rodava um monte de 0 no runcodes
+        escrever_dados(dados,escrita);
+
+        //Cada novo registro ocupa um novo RRN.
+        // Como o enunciado garante que os pares não são repetidos,
+        // cada registro também adiciona um novo par.
+        //
+        cabecalho->proxRRN++;
+        cabecalho->nroPares++;
+    }
+    /*
          * Ao finalizar corretamente a construção do arquivo,
          * atualizamos o status para consistente
          */
@@ -122,11 +107,8 @@ void funcionalidade1(const char *csv, char *binario,
         // os 17 bytes do cabeçalho
 
         fseek(escrita, 0, SEEK_SET);
-        fwrite(&cabecalho->status, sizeof(char), 1, escrita);
-        fwrite(&cabecalho->topo_pilha, sizeof(int), 1, escrita);
-        fwrite(&cabecalho->proxRRN, sizeof(int), 1, escrita);
-        fwrite(&cabecalho->nroRegRem, sizeof(int), 1, escrita);
-        fwrite(&cabecalho->nroPares, sizeof(int), 1, escrita);
+
+        escrever_cabeçalho(cabecalho,escrita);
         fclose(escrita);
         fclose(leitura);
         // modifiquei a parte do binário, colocando apenas char *binario ao invés de
@@ -159,56 +141,32 @@ void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
         return;
     }
 
-    fread(&cabecalho->topo_pilha, sizeof(int), 1, f3);
-    fread(&cabecalho->proxRRN, sizeof(int), 1, f3);
-    fread(&cabecalho->nroRegRem, sizeof(int), 1, f3);
-    fread(&cabecalho->nroPares, sizeof(int), 1, f3);
+    inicializar_cabeçalho(cabecalho);
 
     // COmo lemos o cabeçalho podemos seguir
 
     int encontrou = 0;
 
     for (int i = 0; i < cabecalho->proxRRN; i++) {
-
-        registro_dados dados;
+        // Primeiro devemos inicializar o registro de dados
+        registro_dados dados = {
+            .idPoPs = dados.removido = '0',
+            .idPoPsConectado = dados.encadeamentoPilha = -1,
+            .velocidade = dados.velocidade = -1,
+            .unidadeMedida = dados.unidadeMedida = '$',
+        };
 
         // Primeiro campo de cada registro
         if (fread(&dados.removido, sizeof(char), 1, f3) != 1)
             break;
 
-        fread(&dados.encadeamentoPilha, sizeof(int), 1, f3);
-        fread(&dados.idPoPs, sizeof(int), 1, f3);
-        fread(&dados.idPoPsConectado, sizeof(int), 1, f3);
-        fread(&dados.velocidade, sizeof(int), 1, f3);
-        fread(&dados.unidadeMedida, sizeof(char), 1, f3);
+        escrever_dados(dados, f3);
 
         // Ignora registros logicamente removidos
         if (dados.removido == '1')
             continue;
-
         encontrou = 1;
-        if (dados.idPoPs == -1) {
-            printf("NULO ");
-        } else {
-            printf("%d ", dados.idPoPs);
-        }
-        if (dados.idPoPsConectado == -1) {
-            printf("NULO ");
-        } else {
-            printf("%d ", dados.idPoPsConectado);
-        }
-        if (dados.velocidade == -1) {
-            printf("NULO ");
-        } else {
-            printf("%d ", dados.velocidade);
-        }
-
-        if (dados.unidadeMedida == '$') {
-            printf("NULO");
-        } else {
-            printf("\"%c\"", dados.unidadeMedida);
-        }
-
+        print_dados(dados);
         printf("\n");
     }
 
@@ -253,8 +211,6 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
             fclose(f4);
             return;
         }
-
-
         //Devemos agora ler os filtros passados utilizando a funcao ScanQuoteString que
         // lê de um jeito mais "clean"
 
@@ -268,16 +224,16 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
         int match = 0;
 
         while (1) {
-            registro_dados dados3;
+            registro_dados dados3 = {
+                .idPoPs = dados3.removido = '0',
+                .idPoPsConectado = dados3.encadeamentoPilha = -1,
+                .velocidade = dados3.velocidade = -1,
+                .unidadeMedida = dados3.unidadeMedida = '$',
+            };
             if (fread(&dados3.removido,sizeof(char), 1, f4) != 1) {
                 break;
             }
-            fread(&dados3.encadeamentoPilha,sizeof(int), 1, f4);
-            fread(&dados3.idPoPs,sizeof(int), 1, f4);
-            fread(&dados3.idPoPsConectado,sizeof(int), 1, f4);
-            fread(&dados3.velocidade,sizeof(int), 1, f4);
-            fread(&dados3.unidadeMedida,sizeof(char), 1, f4);
-
+            leitura_dados(dados3, f4);
 
             // Ignora registro removido
             if (dados3.removido == '1') {
@@ -289,97 +245,22 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
              * satisfaz todos os critérios.
              */
             int filtro = 1;
-
-
-         //Agora que o arquivo está integro devemos passar campo a campo verificando da mesma maneira
-         // que fizemos na funcionalidade 2 conferindo se estava vazio e comparando com os valores passados
-         // Para isso devemos passar campo a campo fazendo  o cara-crachá da função
-            for (int j = 0; j < quantidade_pares; j++) {
-                if (strcmp(p[j].chave, "idPoPs") == 0) {
-                    int valor = (int) strtol(p[j].valor, NULL, 10);
-                    if (dados3.idPoPs != valor) {
-                        filtro = 0;
-                        break;
-                    }
-
-                }
-                else if (strcmp(p[j].chave,"idPoPsConectado") == 0) {
-                    int valor = (int) strtol(p[j].valor, NULL, 10);
-                    if (dados3.idPoPsConectado != valor) {
-                        filtro = 0;
-                        break;
-                    }
-                }
-
-                else if (strcmp(p[j].chave,"velocidade") == 0) {
-                    if (p[j].valor[0] == '\0') {
-                        if (dados3.velocidade != -1) {
-                        filtro = 0;
-                        break;
-                        }
-                    }
-                    else {
-                        int valor = (int) strtol(p[j].valor,NULL, 10);
-                        if (dados3.velocidade != valor) {
-                        filtro = 0;
-                        break;
-                        }
-                    }
-                }
-
-                else if (strcmp(p[j].chave, "unidadeMedida") == 0) {
-                    if (p[j].valor[0] == '\0') {
-                        if (dados3.unidadeMedida != '$') {
-                        filtro = 0;
-                        break;
-                        }
-                    }
-
-                    else {
-                        if (dados3.unidadeMedida != p[j].valor[0]) {
-                        filtro = 0;
-                        break;
-                        }
-                    }
-                }
-            }
-
+            filtro = filtrar_dados(p, quantidade_pares, dados3, filtro);
 
     // Conforme inicializamos o valor "filtro" anteriormente na nossa função
     // Agora vamos utilizar como parâmetro para printar
 
             if (filtro == 1) {
                 match = 1;
-                // Aqui já sabemos que o idPoPs não pode ser nulo por isso seguimos diretamente
-                printf("%d ", dados3.idPoPs);
-                printf("%d ", dados3.idPoPsConectado);
-
-                if (dados3.velocidade == -1) {
-                    printf("NULO ");
-                }
-                else {
-                    printf("%d ", dados3.velocidade);
-                }
-                if (dados3.unidadeMedida == '$') {
-                    printf("NULO\n");
-                }
-                else {
-                    printf("\"%c\"\n",
-                           dados3.unidadeMedida);
-                }
+                print_dados(dados3);
             }
         }
-
-
         if (match == 0) {
             printf("Registro inexistente.\n");
         }
-
         free(p);
         printf("\n");
     }
-
-
     fclose(f4);
 }
 
@@ -535,7 +416,7 @@ void funcionalidade5(const char*binario, int n){
     }
     //0 no status do cabecalho pq estamos editando
     cabecalho.status = '0';
-    fwrite(cabecalho.status, sizeof(char), 1, f);
+    fwrite(&cabecalho.status, sizeof(char), 1, f);
 
     registro_dados dado;    //variavel auxiliar
     for(int i = 0; i<n; i++){
