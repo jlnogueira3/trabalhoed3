@@ -33,7 +33,7 @@ void funcionalidade1(const char *csv, char *binario,
 
         inicializar_cabeçalho(cabecalho);
         // As funções auxiliares usadas nesse arquivo estão em
-        // Source/aux/auxiliar_1.c
+        // Source/auxiliares/auxiliar_1.c
 
 
         escrever_cabeçalho(cabecalho,escrita);
