@@ -492,3 +492,83 @@ void funcionalidade4(const char *binario, int rrn){
     fclose(f);
     printf("\n");
 }
+
+void funcionalidade5(const char*binario, int n){
+    FILE *f;
+    f = fopen(binario, "rb");
+    if(f == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        return; 
+        }
+    //leitura do cabecalho igual na func 4
+    registro_cabecalho cabecalho;
+    if(fread(&cabecalho.status, sizeof(char), 1, f) != 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }       //leitura do byte 0
+    if(fread(&cabecalho.topo_pilha, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }     //leitura dos bytes 1 a 4
+    if(fread(&cabecalho.proxRRN, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }        //leitura dos bytes 5 a 8
+    if(fread(&cabecalho.nroRegRem, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }      //leitura dos bytes 9 a 12
+    if(fread(&cabecalho.nroPares, sizeof(int), 1, f)!= 1){
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return; 
+        }          //leitura dos bytes 13 a 16
+
+    if(cabecalho.status != '1'){       //arquivo inconsistente nao pode ser consultado
+        printf("Falha no processamento do arquivo.\n");
+        fclose(f);
+        return;
+    }
+    //0 no status do cabecalho pq estamos editando
+    cabecalho.status = '0';
+    fwrite(cabecalho.status, sizeof(char), 1, f);
+
+    registro_dados dado;    //variavel auxiliar
+    for(int i = 0; i<n; i++){
+        int quantidade;
+        scanf("%d", &quantidade);   //quantidade de criterios desta solicitacao
+
+        struct chave_valor *criterios;
+        criterios = calloc(quantidade, sizeof(struct chave_valor));
+        if(criterios == NULL)
+            return; //falha na alocacao
+        /*struct chave_valor {
+        char chave[50];
+        char valor[50];
+        };*/
+
+        for(int j =0; j < quantidade; j++){
+            scanf("%49s", criterios[j].chave);
+            ScanQuoteString(criterios[j].valor);    //funcao dada
+        }
+
+        for(int rrn = 0; rrn < cabecalho.proxRRN; rrn++){
+            long int pos = 17L +(long)rrn*18L;
+            if(fseek(f, pos, 0)!=0 || fread(&dado.removido, sizeof(char), 1, f) != 1){
+                free(criterios);
+                fclose(f);
+                printf("Falha no processamento do arquivo.\n");
+                return;
+            }
+            if(dado.removido == '1')    //se tiver sido removido, vai pro proximo
+                continue;
+        }
+
+        free(criterios);
+    }
+}
+

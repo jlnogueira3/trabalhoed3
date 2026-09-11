@@ -26,4 +26,6 @@ void funcionalidade3(const char *binario,
 
 void funcionalidade4(const char *binario, int rrn);
 
+void funcionalidade5(const char*binario, int n);
+
 #endif //TRABALHOED3_IMPLEMENTADAS_H
