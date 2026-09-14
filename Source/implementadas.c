@@ -426,7 +426,6 @@ void funcionalidade5(const char*binario, int n){
             //atualiza a pilha e os contadores
             cabecalho.topo_pilha = rrn;
             cabecalho.nroRegRem++;
-            cabecalho.nroPares--;
         }
         free(criterios);
     }
