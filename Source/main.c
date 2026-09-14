@@ -50,7 +50,9 @@ int main(void) {
             funcionalidade4(arg1, rrn);
             break;
         case 5:
-            //funcionalidade1(arg1,arg2)
+            int n = (int)strtol(arg2, NULL, 10);    //mesma coisa do case 4
+            funcionalidade5(arg1, n);
+            break;
         case 6:
             //funcionalidade1(arg1,arg2)
         case 7:
