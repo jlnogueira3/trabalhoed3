@@ -215,20 +215,5 @@ O projeto explora conceitos importantes de programação em C e organização de
 
 ---
 
-## Tecnologias
-
-- **C11**
-- **GCC**
-- **Make**
-- **CMake**
-- **Git / GitHub**
-
----
-
-## Autores
-
-Desenvolvido por **João Lucas** e **José Eduardo** como trabalho acadêmico.
-
----
 
 > Este repositório tem finalidade acadêmica e foi desenvolvido seguindo as especificações fornecidas para o trabalho.
