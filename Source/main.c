@@ -34,14 +34,12 @@ int main(void) {
             */
             funcionalidade1(arg1,arg2,&cabecalho);
             break;
-            return 0;
         case 2:
             /* Diferente da funcionalidade 1, a funcionalidade 2 recebe apenas o argumento
              * arg1 e o registro de cabecalho
              */
             funcionalidade2(arg1,&cabecalho);
             break;
-            return 0;
         case 3:
             funcionalidade3(arg1, &cabecalho, arg2);
             break;

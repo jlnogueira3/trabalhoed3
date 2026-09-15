@@ -14,6 +14,11 @@ typedef struct registro_cabecalho {
 } registro_cabecalho; 
 //Sempre que for inicializar: .proxRRN = 0; .nroRegRem = 0; .encadeamentoPilha = -1;
 
+typedef struct chave_valor {
+    char chave[50];
+    char valor[50];
+} chave_valor;
+
 
 typedef struct registro_dados {
     int idPoPs;
