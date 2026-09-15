@@ -8,6 +8,9 @@
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
 
+//Realiza a inserção de novos registros no arquivo binário, reutilizando
+// posições de registros removidos quando possível.
+
 void funcionalidade6(const char*binario, int n){
     FILE *f;
     f = fopen(binario, "r+b");

@@ -12,7 +12,7 @@
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
 void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) {
-
+//Realiza buscas sequenciais no arquivo binário utilizando um ou mais pares de campo e valor como critérios de filtragem.
     //Primeiro devemos verificar a integridade do arquivo e se está tudo correto
     FILE *f4 = fopen(binario, "rb");
     if (f4 == NULL) {

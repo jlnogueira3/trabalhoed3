@@ -7,7 +7,9 @@
 #include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
-
+//Percorre o arquivo binário
+//e exibe todos os registros válidos, desconsiderando os
+//registros removidos.
 void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
 
     // Primeiro devemos verificar se o arquivo está consistente

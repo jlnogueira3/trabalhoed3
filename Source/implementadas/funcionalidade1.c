@@ -7,7 +7,8 @@
 #include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
-
+//Lê os registros de um arquivo CSV e os converte para o
+//formato binário, criando também o cabeçalho do arquivo.
 void funcionalidade1(const char *csv, char *binario,
                      registro_cabecalho *cabecalho) {
     // Primeiro devemos nos certificar de que o arquivo está completo

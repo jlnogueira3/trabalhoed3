@@ -9,7 +9,8 @@
 #include "../../Headers/fornecidas.h"
 #include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
-
+//Acessa diretamente um registro por meio de seu RRN e o exibe caso ele
+//exista e não esteja removido.
 
 void funcionalidade4(const char *binario, int rrn){
     FILE* f;

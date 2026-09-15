@@ -10,7 +10,8 @@
 #include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
-
+//Realiza a remoção lógica dos registros que atendem aos
+//critérios informados, atualizando a pilha de removidos e o cabeçalho.
 void funcionalidade5(const char*binario, int n){
     FILE *f;
     f = fopen(binario, "r+b");
