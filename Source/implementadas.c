@@ -164,12 +164,9 @@ void funcionalidade2(const char *binario, registro_cabecalho *cabecalho) {
         };
 
         // Lê o primeiro byte do registro
-        if (fread(&dados.removido, sizeof(char), 1, f3) != 1) {
+        if (leitura_dados(&dados, f3) != 1) {
             break;
         }
-
-        // Lê os outros 17 bytes do registro
-        leitura_dados(&dados, f3);
 
         // Registro logicamente removido não é mostrado
         if (dados.removido == '1') {
