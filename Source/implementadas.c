@@ -232,31 +232,26 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
         int match = 0;
 
         while (1) {
+
             registro_dados dados3 = {
-                .idPoPs = dados3.removido = '0',
-                .idPoPsConectado = dados3.encadeamentoPilha = -1,
-                .velocidade = dados3.velocidade = -1,
-                .unidadeMedida = dados3.unidadeMedida = '$',
+                .removido = '0',
+                .encadeamentoPilha = -1,
+                .idPoPs = -1,
+                .idPoPsConectado = -1,
+                .velocidade = -1,
+                .unidadeMedida = '$'
             };
-            if (fread(&dados3.removido,sizeof(char), 1, f4) != 1) {
+
+            if (leitura_dados(&dados3, f4) != 1) {
                 break;
             }
-            leitura_dados(&dados3, f4);
 
-            // Ignora registro removido
             if (dados3.removido == '1') {
                 continue;
             }
 
-            /*
-             * Começamos supondo que o registro
-             * satisfaz todos os critérios.
-             */
             int filtro = 1;
             filtro = filtrar_dados(p, quantidade_pares, dados3, filtro);
-
-    // Conforme inicializamos o valor "filtro" anteriormente na nossa função
-    // Agora vamos utilizar como parâmetro para printar
 
             if (filtro == 1) {
                 match = 1;
