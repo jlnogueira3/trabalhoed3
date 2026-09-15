@@ -8,7 +8,7 @@ O projeto foi estruturado de forma modular, separando as definições dos regist
 
 ## Funcionalidades
 
-Atualmente, o programa implementa as seguintes operações:
+O programa implementa as seguintes operações:
 
 | Código | Funcionalidade | Descrição |
 |:---:|---|---|
