@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../Headers/registros.h"
 #include "../../Headers/fornecidas.h"
@@ -9,7 +10,7 @@
 //Realiza a inserção de novos registros no arquivo binário, reutilizando
 //posições de registros removidos quando possível.
 
-void funcionalidade6(const char*binario, int n){
+void funcionalidade6(const char *binario, int n){
     FILE *f;
     f = fopen(binario, "r+b");
 
@@ -99,5 +100,5 @@ void funcionalidade6(const char*binario, int n){
     fflush(f);
 
     fclose(f);
-    BinarioNaTela((char *)binario);
+    BinarioNaTela((char*)binario);
 }

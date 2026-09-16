@@ -35,4 +35,9 @@ void funcionalidade6(
     int n
 );
 
+void funcionalidade7(
+    const char *binario, 
+    int n)
+;
+
 #endif

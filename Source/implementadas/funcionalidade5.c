@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../Headers/registros.h"
 #include "../../Headers/fornecidas.h"
@@ -7,7 +8,7 @@
 
 //Realiza a remoção lógica dos registros que atendem aos
 //critérios informados, atualizando a pilha de removidos e o cabeçalho.
-void funcionalidade5(const char*binario, int n){
+void funcionalidade5(const char *binario, int n){
     FILE *f;
     f = fopen(binario, "r+b");
 
@@ -96,5 +97,5 @@ void funcionalidade5(const char*binario, int n){
     fflush(f);
 
     fclose(f);
-    BinarioNaTela((char *)binario);
+    BinarioNaTela((char*)binario);
 }

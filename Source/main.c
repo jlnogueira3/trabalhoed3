@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "../Headers/implementadas.h"
 
-
-
 int main(void) {
     // Precisamos ler a opcão que vamos utilizar
     char opcao[100];
@@ -61,9 +59,10 @@ int main(void) {
             funcionalidade6(arg1, n);
             break;
         }
-        case 7:
-            //funcionalidade1(arg1,arg2)
-
+        case 7: {
+            int n = (int)strtol(arg2, NULL, 10);
+            funcionalidade7(arg1, n);
+            break;
+        }
     }
-
 }
