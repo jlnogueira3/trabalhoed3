@@ -27,32 +27,40 @@ int main(void) {
 
 
     switch (opcao_int) {
-        case 1:
+        case 1:{
             /*Devemos chamar a função com os endereços dos argumentos
              utilizados, só lembrando que *&arg1 é equivalente a arg1,
              escrevi para lembrar de como fiz a passagem de argumentos
             */
             funcionalidade1(arg1,arg2,&cabecalho);
             break;
-        case 2:
+        }
+        case 2:{
             /* Diferente da funcionalidade 1, a funcionalidade 2 recebe apenas o argumento
              * arg1 e o registro de cabecalho
              */
             funcionalidade2(arg1,&cabecalho);
             break;
-        case 3:
+        }
+        case 3:{
             funcionalidade3(arg1, &cabecalho, arg2);
             break;
-        case 4:
+        }
+        case 4:{
             int rrn = (int)strtol(arg2, NULL, 10);   //string -> long -> int (cast)
             funcionalidade4(arg1, rrn);
             break;
-        case 5:
+        }
+        case 5:{
             int n = (int)strtol(arg2, NULL, 10);    //mesma coisa do case 4
             funcionalidade5(arg1, n);
             break;
-        case 6:
-            //funcionalidade1(arg1,arg2)
+        }
+        case 6:{
+            int n = (int)strtol(arg2, NULL, 10);
+            funcionalidade6(arg1, n);
+            break;
+        }
         case 7:
             //funcionalidade1(arg1,arg2)
 

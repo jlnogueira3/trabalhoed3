@@ -3,8 +3,6 @@
 
 #include "registros.h"
 
-
-
 void funcionalidade1(
     const char *csv,
     char *binario,

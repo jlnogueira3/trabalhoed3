@@ -1,13 +1,8 @@
-//
-// Created by joao-lucas-nogueira on 15/09/2026.
-//
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "../../Headers/registros.h"
 #include "../../Headers/fornecidas.h"
-#include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
 //Realiza a remoção lógica dos registros que atendem aos
@@ -16,17 +11,18 @@ void funcionalidade5(const char*binario, int n){
     FILE *f;
     f = fopen(binario, "r+b");
 
+    if(verificar_abertura_arquivo(f) == 0)
+        return;
+
     //leitura do cabecalho
     registro_cabecalho cabecalho;
     if(leitura_cabecalho(f, &cabecalho) != 1){
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
+        falha_processamento_arquivo(f);
         return;
     }
 
     if(cabecalho.status != '1'){       //arquivo inconsistente nao pode ser consultado
-        printf("Falha no processamento do arquivo.\n");
-        fclose(f);
+        falha_processamento_arquivo(f);
         return;
     }
 
@@ -42,8 +38,7 @@ void funcionalidade5(const char*binario, int n){
         int quantidade;
         scanf("%d", &quantidade);
         if(quantidade <= 0){
-            printf("Falha no processamento do arquivo.\n");
-            fclose(f);
+            falha_processamento_arquivo(f);
             return;
         }
 
@@ -60,8 +55,7 @@ void funcionalidade5(const char*binario, int n){
             fseek(f, pos, SEEK_SET);
             if(leitura_dados(&dado, f) != 1){
                 free(criterios);
-                fclose(f);
-                printf("Falha no processamento do arquivo.\n");
+                falha_processamento_arquivo(f);
                 return;
             }
             if(dado.removido == '1')    //se tiver sido removido, vai pro proximo

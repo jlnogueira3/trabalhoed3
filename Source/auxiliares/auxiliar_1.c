@@ -227,3 +227,16 @@ int atende_criterios(const registro_dados *dado, const struct chave_valor *crite
     }
     return tester;
 }
+
+void falha_processamento_arquivo(FILE *f){
+    printf("Falha no processamento do arquivo.\n");
+    fclose(f);
+}
+
+int verificar_abertura_arquivo(FILE *f){
+    if(f == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        return 0;
+    }
+    return 1;
+}

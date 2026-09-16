@@ -1,6 +1,3 @@
-//
-// Created by joao-lucas-nogueira on 15/09/2026.
-//
 #include <stdio.h>
 #include <string.h>
 #include "../../Headers/registros.h"

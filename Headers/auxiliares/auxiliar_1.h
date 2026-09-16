@@ -20,5 +20,7 @@ int leitura_dados(registro_dados *dados, FILE *arquivo);
 int filtrar_dados(struct chave_valor *p, int quantidade_pares, struct registro_dados dados, int filtro);
 int leitura_cabecalho(FILE *f, registro_cabecalho *cabecalho);
 int atende_criterios(const registro_dados *dado, const struct chave_valor *criterios, int quantidade);
+void falha_processamento_arquivo(FILE *f);
+int verificar_abertura_arquivo(FILE *f);
 
 #endif //TRABALHOED3_AUXILIAR_1_H
