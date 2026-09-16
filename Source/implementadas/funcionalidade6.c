@@ -50,10 +50,10 @@ void funcionalidade6(const char *binario, int n){
         //leitura dos dados que vao ser inseridos
         scanf("%d", &dado.idPoPs);
         scanf("%d", &dado.idPoPsConectado);
-        ScanQuoteString(velocidade);
+        scanf("%49s", velocidade);
         ScanQuoteString(unidadeMedida);
 
-        if(velocidade[0] != '\0')
+        if(strcmp(velocidade, "NULO") != 0)
             dado.velocidade = (int)strtol(velocidade, NULL, 10);
 
         if(unidadeMedida[0] != '\0')

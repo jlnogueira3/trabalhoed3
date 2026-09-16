@@ -48,9 +48,16 @@ void funcionalidade5(const char *binario, int n){
 
         for(int j =0; j < quantidade; j++){
             scanf("%49s", criterios[j].chave);
-            ScanQuoteString(criterios[j].valor);    //funcao dada
-        }
 
+            if(strcmp(criterios[j].chave, "unidadeMedida") == 0)
+                ScanQuoteString(criterios[j].valor);    //funcao dada
+            else{
+                scanf("%49s", criterios[j].valor);
+                if(strcmp(criterios[j].valor, "NULO") == 0)
+                    criterios[j].valor[0] = '\0';
+            }
+        }
+        
         for(int rrn = 0; rrn < cabecalho.proxRRN; rrn++){
             long int pos = 17L +(long)rrn*18L;
             fseek(f, pos, SEEK_SET);
