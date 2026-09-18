@@ -1,6 +1,5 @@
-//
-// Created by joao-lucas-nogueira on 11/09/2026.
-//
+//João Lucas Almeida Nogueira ;         NUSP 16986970
+//José Eduardo Constantino Nordemann ;  NUSP 16877738
 
 #ifndef TRABALHOED3_AUXILIAR_1_H
 #define TRABALHOED3_AUXILIAR_1_H
@@ -22,5 +21,8 @@ int leitura_cabecalho(FILE *f, registro_cabecalho *cabecalho);
 int atende_criterios(const registro_dados *dado, const struct chave_valor *criterios, int quantidade);
 void falha_processamento_arquivo(FILE *f);
 int verificar_abertura_arquivo(FILE *f);
+struct chave_valor *cria_criterios(int quantidade);
+void adiciona_criterios(struct chave_valor *criterios, int quantidade);
+void destroi_criterios(struct chave_valor *criterios);
 
 #endif //TRABALHOED3_AUXILIAR_1_H

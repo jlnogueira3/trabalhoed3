@@ -1,3 +1,6 @@
+//João Lucas Almeida Nogueira ;         NUSP 16986970
+//José Eduardo Constantino Nordemann ;  NUSP 16877738
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,51 +48,42 @@ void funcionalidade7(const char *binario, int n){
         }
 
         struct chave_valor *criterios;
-        criterios = calloc(quantidade_criterios, sizeof(struct chave_valor));
+        criterios = cria_criterios(quantidade_criterios);
 
-        for(int j = 0; j < quantidade_criterios; j++){
-            scanf("%49s", criterios[j].chave);
-
-            if(strcmp(criterios[j].chave, "unidadeMedida") == 0)
-                ScanQuoteString(criterios[j].valor);
-            else{
-                scanf("%49s", criterios[j].valor);
-                if(strcmp(criterios[j].valor, "NULO") == 0)
-                    criterios[j].valor[0] = '\0';
-            }
+        if(criterios == NULL){
+            falha_processamento_arquivo(f);
+            return;
         }
+
+        adiciona_criterios(criterios, quantidade_criterios);
 
         //quantidade de campos que serao atualizados
         int quantidade_atualizacoes;
         scanf("%d", &quantidade_atualizacoes);
         if(quantidade_atualizacoes <= 0){
-            free(criterios);
+            destroi_criterios(criterios);
             falha_processamento_arquivo(f);
             return;
         }
 
         struct chave_valor *atualizacoes;
-        atualizacoes = calloc(quantidade_atualizacoes, sizeof(struct chave_valor));
+        atualizacoes = cria_criterios(quantidade_atualizacoes);
 
-        for(int j = 0; j < quantidade_atualizacoes; j++){
-            scanf("%49s", atualizacoes[j].chave);
-
-            if(strcmp(atualizacoes[j].chave, "unidadeMedida") == 0)
-                ScanQuoteString(atualizacoes[j].valor);
-            else{
-                scanf("%49s", atualizacoes[j].valor);
-                if(strcmp(atualizacoes[j].valor, "NULO") == 0)
-                    atualizacoes[j].valor[0] = '\0';
-            }
+        if(atualizacoes == NULL){
+            destroi_criterios(criterios);
+            falha_processamento_arquivo(f);
+            return;
         }
+
+        adiciona_criterios(atualizacoes, quantidade_atualizacoes);
 
         for(int rrn = 0; rrn < cabecalho.proxRRN; rrn++){
             long int pos = 17L + (long)rrn*18L;
             fseek(f, pos, SEEK_SET);
 
             if(leitura_dados(&dado, f) != 1){
-                free(criterios);
-                free(atualizacoes);
+                destroi_criterios(criterios);
+                destroi_criterios(atualizacoes);
                 falha_processamento_arquivo(f);
                 return;
             }
@@ -134,8 +128,8 @@ void funcionalidade7(const char *binario, int n){
             escrever_dados(dado, f);
         }
 
-        free(criterios);
-        free(atualizacoes);
+        destroi_criterios(criterios);
+        destroi_criterios(atualizacoes);
     }
 
     //grava o cabecalho atualizado ainda com status 0

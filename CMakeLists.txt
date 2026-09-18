@@ -18,4 +18,5 @@ add_executable(trabalhoed3
         Source/implementadas/funcionalidade4.c
         Source/implementadas/funcionalidade5.c
         Source/implementadas/funcionalidade6.c
+        Source/implementadas/funcionalidade7.c
 )

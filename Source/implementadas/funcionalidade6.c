@@ -1,3 +1,6 @@
+//João Lucas Almeida Nogueira ;         NUSP 16986970
+//José Eduardo Constantino Nordemann ;  NUSP 16877738
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

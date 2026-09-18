@@ -1,3 +1,6 @@
+//João Lucas Almeida Nogueira ;         NUSP 16986970
+//José Eduardo Constantino Nordemann ;  NUSP 16877738
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,8 +36,8 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
         int quantidade_pares;
         scanf("%d", &quantidade_pares);
 
-        struct chave_valor *p =
-            calloc(quantidade_pares, sizeof(struct chave_valor));
+        struct chave_valor *p;
+        p = cria_criterios(quantidade_pares);
 
         if (p == NULL) {
             printf("Falha no processamento do arquivo.\n");
@@ -44,10 +47,7 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
         //Devemos agora ler os filtros passados utilizando a funcao ScanQuoteString que
         // lê de um jeito mais "clean"
 
-        for (int j = 0; j < quantidade_pares; j++) {
-            scanf("%s", p[j].chave);
-            ScanQuoteString(p[j].valor);
-        }
+        adiciona_criterios(p, quantidade_pares);
 
         //Antes de comecar a percorrer o arquivo devemos pular o cabeçalho
         fseek(f4, 17, SEEK_SET);
@@ -83,7 +83,7 @@ void funcionalidade3(const char *binario,registro_cabecalho *cabecalho,char *n) 
         if (match == 0) {
             printf("Registro inexistente.\n");
         }
-        free(p);
+        destroi_criterios(p);
         printf("\n");
     }
     fclose(f4);

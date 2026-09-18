@@ -1,3 +1,6 @@
+//João Lucas Almeida Nogueira ;         NUSP 16986970
+//José Eduardo Constantino Nordemann ;  NUSP 16877738
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,25 +47,20 @@ void funcionalidade5(const char *binario, int n){
         }
 
         struct chave_valor *criterios;
-        criterios = calloc(quantidade, sizeof(struct chave_valor));
+        criterios = cria_criterios(quantidade);
 
-        for(int j =0; j < quantidade; j++){
-            scanf("%49s", criterios[j].chave);
-
-            if(strcmp(criterios[j].chave, "unidadeMedida") == 0)
-                ScanQuoteString(criterios[j].valor);    //funcao dada
-            else{
-                scanf("%49s", criterios[j].valor);
-                if(strcmp(criterios[j].valor, "NULO") == 0)
-                    criterios[j].valor[0] = '\0';
-            }
+        if(criterios == NULL){
+            falha_processamento_arquivo(f);
+            return;
         }
+
+        adiciona_criterios(criterios, quantidade);
         
         for(int rrn = 0; rrn < cabecalho.proxRRN; rrn++){
             long int pos = 17L +(long)rrn*18L;
             fseek(f, pos, SEEK_SET);
             if(leitura_dados(&dado, f) != 1){
-                free(criterios);
+                destroi_criterios(criterios);
                 falha_processamento_arquivo(f);
                 return;
             }
@@ -89,7 +87,7 @@ void funcionalidade5(const char *binario, int n){
             cabecalho.topo_pilha = rrn;
             cabecalho.nroRegRem++;
         }
-        free(criterios);
+        destroi_criterios(criterios);
     }
 
     //grava o cabecalho atualizado ainda com status 0
