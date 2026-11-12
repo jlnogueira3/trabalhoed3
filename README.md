@@ -1,5 +1,11 @@
 # Trabalho Introdutório — Arquivos Binários em C
 
+O projeto também contém as funcionalidades **11 a 14 do trabalho 2**, para o
+arquivo de dados PoPs e seu índice primário. As instruções, o contrato binário
+adotado e os testes dessa parte estão em [Trabalho 2](docs/TRABALHO2.md).
+As funcionalidades 8, 9 e 10 ainda não estão implementadas neste repositório.
+O restante deste README descreve o trabalho 1.
+
 Projeto desenvolvido em **C** com foco na manipulação de registros em arquivos binários. O programa realiza conversão de dados em CSV, listagem, buscas com filtros, acesso por RRN, remoção lógica, inserção e atualização de registros.
 
 O projeto foi estruturado de forma modular, separando as definições dos registros, as funcionalidades principais, as funções auxiliares e as funções fornecidas pela disciplina.

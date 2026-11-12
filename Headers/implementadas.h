@@ -43,4 +43,9 @@ void funcionalidade7(
     int n)
 ;
 
+void funcionalidade11(const char *binario, const char *nome_indice, int n);
+void funcionalidade12(const char *binario, const char *nome_indice, int n);
+void funcionalidade13(const char *binario, const char *nome_indice, int n);
+void funcionalidade14(const char *binario, const char *nome_indice, int n);
+
 #endif

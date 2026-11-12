@@ -19,4 +19,12 @@ add_executable(trabalhoed3
         Source/implementadas/funcionalidade5.c
         Source/implementadas/funcionalidade6.c
         Source/implementadas/funcionalidade7.c
+        Headers/pops.h
+        Headers/auxiliares/auxiliar_2.h
+        Source/auxiliares/auxiliar_2.c
+        Source/auxiliares/pops_entrada.c
+        Source/implementadas/funcionalidade11.c
+        Source/implementadas/funcionalidade12.c
+        Source/implementadas/funcionalidade13.c
+        Source/implementadas/funcionalidade14.c
 )
