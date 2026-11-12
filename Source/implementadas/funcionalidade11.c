@@ -28,6 +28,9 @@ void funcionalidade11(const char *binario, const char *nome_indice, int n){
         ok = buscar_registros_pops(f, &cabecalho, &indice, criterios, quantidade, &posicoes, &encontrados);
         destroi_criterios_pops(criterios, quantidade);
 
+        //Uma linha em branco separa o resultado de cada solicacao da anterior.
+        if(ok && i > 0)
+            printf("\n");
         if(ok && encontrados == 0)
             printf("Registro inexistente.\n");
         for(size_t j = 0; ok && j < encontrados; j++){

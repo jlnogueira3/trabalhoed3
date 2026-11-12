@@ -23,8 +23,8 @@ int main(void) {
     // porque o scanf com "%d" não é usado aqui
     long int opcao_int = strtol(opcao, NULL, 10);
 
-    // As demais opções recebem um segundo argumento
-    if (opcao_int != 2 && scanf("%99s", arg2) != 1) {
+    // As opções 2 e 10 recebem só o arquivo; as demais recebem um segundo argumento
+    if (opcao_int != 2 && opcao_int != 10 && scanf("%99s", arg2) != 1) {
         printf("Falha no processamento do arquivo.\n");
         return 0;
     }
@@ -72,6 +72,9 @@ int main(void) {
         case 9:
             // arg1 é o arquivo de dados PoPs e arg2 é o arquivo de índice a ser criado
             funcionalidade9(arg1, arg2);
+            break;
+        case 10:
+            funcionalidade10(arg1);
             break;
         case 11:
             funcionalidade11(arg1, arg2, quantidade_pops);
