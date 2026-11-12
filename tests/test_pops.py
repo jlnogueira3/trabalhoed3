@@ -126,7 +126,7 @@ class PoPsTests(unittest.TestCase):
         # Cada solicitação gera seu bloco; uma linha em branco separa um bloco do próximo
         expected = "\n".join(f"{id_} {name or 'NULO'} {country or 'NULO'} {code or 'NULO'}\n"
                               for id_, name, country, code in rows)
-        self.assertEqual(self.run_program(11, len(rows), body), expected)
+        self.assertEqual(self.run_program(11, len(rows), body), expected + "\n")
         cases = [("nomePais", "BRAZIL", 2), ("nomePoPs", "", 1), ("siglaPais", "", 3)]
         body = "".join(f'1 {key} ' + (f'"{value}"' if value else "NULO") + "\n"
                        for key, value, _ in cases)
@@ -136,7 +136,7 @@ class PoPsTests(unittest.TestCase):
             blocks.append("".join(f"{id_} {name or 'NULO'} {country or 'NULO'} {code or 'NULO'}\n"
                                   for id_, name, country, code in matches) or MISSING)
         expected = "\n".join(blocks)
-        self.assertEqual(self.run_program(11, len(cases), body), expected)
+        self.assertEqual(self.run_program(11, len(cases), body), expected + "\n")
         self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
         self.inspect()
 
@@ -147,14 +147,14 @@ class PoPsTests(unittest.TestCase):
                 '1 idPoPs 999\n1 idPoPs 2\n')
         self.assertEqual(self.run_program(11, 4, body),
                          "\n".join(["7 CAMPINA GRANDE BRAZIL BR\n", MISSING, MISSING,
-                                    "2 PARIS FRANCE FR\n"]))
+                                    "2 PARIS FRANCE FR\n"]) + "\n")
 
     def test_indexed_query_does_not_scan_unrelated_record(self):
         offsets = self.create([(1, "A", "B", "BR"), (2, "X", "Y", "CL")])
         raw = bytearray(self.data.read_bytes())
         raw[offsets[1] + FIXED.size:offsets[2]] = b"?" * (offsets[2] - offsets[1] - FIXED.size)
         self.data.write_bytes(raw)
-        self.assertEqual(self.run_program(11, 1, "1 idPoPs 2\n"), "2 X Y CL\n")
+        self.assertEqual(self.run_program(11, 1, "1 idPoPs 2\n"), "2 X Y CL\n\n")
         self.assertEqual(self.run_program(11, 1, '1 nomePais "Y"\n'), FAILURE)
 
     def test_delete_multiple_requests_no_match_and_repeated_match(self):
@@ -164,7 +164,7 @@ class PoPsTests(unittest.TestCase):
         self.assertEqual(active, {})
         self.assertEqual(len(chain), 3)
         self.assertEqual(self.index.read_bytes(), b"1")
-        self.assertEqual(self.run_program(11, 1, '1 nomePais "BRAZIL"\n'), MISSING)
+        self.assertEqual(self.run_program(11, 1, '1 nomePais "BRAZIL"\n'), MISSING + "\n")
 
     def test_worst_fit_unordered_list_middle_and_tail(self):
         offsets = self.create([(1, "A", "", ""), (2, "B", "", ""), (3, "C", "", "")],
@@ -231,7 +231,7 @@ class PoPsTests(unittest.TestCase):
         self.assertEqual(active[10]["size"], 60)
         self.assertEqual(chain, [offsets[1], offsets[3]])
         self.assertEqual(self.run_program(11, 2, '1 idPoPs 1\n1 idPoPs 10\n'),
-                         "\n".join([MISSING, "10 A LONG NAME BRAZIL NULO\n"]))
+                         "\n".join([MISSING, "10 A LONG NAME BRAZIL NULO\n"]) + "\n")
 
     def test_update_many_relocations_and_next_request_sees_changes(self):
         self.create([(1, "A", "B", "BR"), (2, "C", "B", "BR")])
@@ -262,7 +262,7 @@ class PoPsTests(unittest.TestCase):
 
     def test_empty_files_and_zero_requests(self):
         self.create()
-        self.assertEqual(self.run_program(11, 1, "1 idPoPs 5\n"), MISSING)
+        self.assertEqual(self.run_program(11, 1, "1 idPoPs 5\n"), MISSING + "\n")
         for option in (12, 13, 14):
             self.run_program(option, 0)
             self.assertEqual(self.inspect(), ({}, []))

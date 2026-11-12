@@ -44,6 +44,9 @@ void funcionalidade11(const char *binario, const char *nome_indice, int n){
         }
         free(posicoes);
     }
+    //Ao final de uma execucao bem-sucedida, uma linha em branco finaliza a saida.
+    if(ok)
+        printf("\n");
     if(!fechar_arquivos_pops(f, fi, &indice))
         ok = 0;
     if(!ok)
