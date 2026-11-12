@@ -1,8 +1,9 @@
 /*
  * João L A Nogueira - N usp: 16986970
+ * José Eduardo Constantino Nordemann - N usp: 16877738
  *
  * Funcionalidade 8 (trabalho 2): lê registros de um CSV de PoPs e grava
- * o arquivo de dados PoPs (cabeçalho de 25 bytes e registros de tamanho variável).
+ * o arquivo de dados PoPs, usando as funções de auxiliar_2 do arquivo de dados.
  */
 
 #include <stdio.h>
@@ -13,10 +14,13 @@
 #include "../../Headers/fornecidas.h"
 #include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
-#include "../../Headers/auxiliares/pops.h"
+#include "../../Headers/auxiliares/auxiliar_2.h"
 
 #define TAM_LINHA_CSV 512
 #define MAX_COLUNAS_CSV 16
+
+// siglaPais ocupa 2 bytes fixos no arquivo de dados
+#define TAM_SIGLA_PAIS 2
 
 // Separa uma linha do CSV em campos, trocando cada vírgula por '\0'.
 // Campos vazios são mantidos como strings vazias (valores nulos).
@@ -57,8 +61,15 @@ void funcionalidade8(const char *csv, const char *binario) {
 
     // Cabeçalho inicial, com status '0' até o fim da escrita
     cabecalho_pops cabecalho;
-    inicializar_cabecalho_pops(&cabecalho);
-    escrever_cabecalho_pops(&cabecalho, escrita);
+    cabecalho.status = '0';
+    cabecalho.topoLista = -1;
+    cabecalho.proxByteOffset = CABECALHO_POPS;
+    cabecalho.nroRegRem = 0;
+    cabecalho.nroPoPs = 0;
+    if (!escrever_cabecalho_pops(escrita, &cabecalho)) {
+        encerrar_com_falha(leitura, escrita);
+        return;
+    }
 
     // Lê a primeira linha e localiza as colunas pelo nome
     char linha[TAM_LINHA_CSV];
@@ -106,27 +117,43 @@ void funcionalidade8(const char *csv, const char *binario) {
             return;
         }
 
-        // Os caracteres '|' e '$' são reservados pelo formato do arquivo
-        if (strpbrk(campos[col_nome], "|$") != NULL || strpbrk(campos[col_pais], "|$") != NULL) {
+        // Os caracteres '|' são reservados como delimitador dos campos variáveis
+        if (strchr(campos[col_nome], '|') != NULL || strchr(campos[col_pais], '|') != NULL) {
             encerrar_com_falha(leitura, escrita);
             return;
         }
 
-        int idPoPs = atoi(campos[col_id]);
+        // siglaPais tem 2 bytes. Vazio vira "$$" (nulo); caractere faltante vira '$'.
+        char sigla[TAM_SIGLA_PAIS + 1];
+        for (int i = 0; i < TAM_SIGLA_PAIS; i++)
+            sigla[i] = campos[col_sigla][i] != '\0' ? campos[col_sigla][i] : '$';
+        sigla[TAM_SIGLA_PAIS] = '\0';
 
-        // O registro começa no próximo byte offset disponível
-        escrever_registro_pops(escrita, idPoPs, campos[col_sigla],
-                               campos[col_nome], campos[col_pais]);
+        dados_pops dado;
+        dado.removido = '0';
+        dado.encadeamentoLista = -1;
+        dado.idPoPs = (int32_t)atoi(campos[col_id]);
+        memcpy(dado.siglaPais, sigla, TAM_SIGLA_PAIS + 1);
+        dado.nomePoPs = campos[col_nome];
+        dado.nomePais = campos[col_pais];
 
-        // tamanhoRegistro já é o tamanho total do registro
-        int tamanho = tamanho_registro_pops(campos[col_nome], campos[col_pais]);
-        cabecalho.proxByteOffset += tamanho;
+        // tamanhoRegistro é o tamanho total do registro, incluindo o controle
+        if (!tamanho_dados_pops(&dado, &dado.tamanhoRegistro) ||
+            !escrever_dados_pops(escrita, cabecalho.proxByteOffset, &dado)) {
+            encerrar_com_falha(leitura, escrita);
+            return;
+        }
+
+        cabecalho.proxByteOffset += dado.tamanhoRegistro;
         cabecalho.nroPoPs++;
     }
 
     // Arquivo completo: marca como consistente e regrava o cabeçalho no início
     cabecalho.status = STATUS_CONSISTENTE;
-    salvar_cabecalho_pops(escrita, &cabecalho);
+    if (!escrever_cabecalho_pops(escrita, &cabecalho) || fflush(escrita) != 0) {
+        encerrar_com_falha(leitura, escrita);
+        return;
+    }
 
     fclose(escrita);
     fclose(leitura);

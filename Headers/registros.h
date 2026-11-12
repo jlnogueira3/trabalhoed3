@@ -1,5 +1,6 @@
 /*
  * João L A Nogueira - N usp: 16986970
+ * José Eduardo Constantino Nordemann - N usp: 16877738
  */
 //
 // Created by joao-lucas-nogueira on 08/09/2026.

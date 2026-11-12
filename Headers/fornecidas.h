@@ -1,6 +1,5 @@
-//
-// Created by joao-lucas-nogueira on 09/09/2026.
-//
+//João Lucas Almeida Nogueira ;         NUSP 16986970
+//José Eduardo Constantino Nordemann ;  NUSP 16877738
 
 #ifndef TRABALHOED3_FORNECIDAS_H
 #define TRABALHOED3_FORNECIDAS_H

@@ -11,6 +11,7 @@
 
 #include "../../Headers/registros.h"
 #include "../../Headers/fornecidas.h"
+#include "../../Headers/fornecidas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
 // Funções auxiliares compartilhadas pelas funcionalidades.
@@ -306,4 +307,35 @@ int verificar_abertura_arquivo(FILE *f) {
         return 0;
     }
     return 1;
+}
+
+// ---------------------------------------------------------------------------
+// Vetor de critérios (código do colega, mantido sem alterações de lógica)
+// ---------------------------------------------------------------------------
+
+// Essa função cria um vetor de critérios com a quantidade informada.
+// Retorna o endereço do vetor criado ou NULL caso a alocação não funcione.
+struct chave_valor *cria_criterios(int quantidade) {
+    return calloc(quantidade, sizeof(struct chave_valor));
+}
+
+// Essa função lê do teclado os campos e valores de todos os critérios.
+// Também transforma o valor NULO em uma string vazia para facilitar as comparações.
+void adiciona_criterios(struct chave_valor *criterios, int quantidade) {
+    for (int j = 0; j < quantidade; j++) {
+        scanf("%49s", criterios[j].chave);
+
+        if (strcmp(criterios[j].chave, "unidadeMedida") == 0)
+            ScanQuoteString(criterios[j].valor);
+        else {
+            scanf("%49s", criterios[j].valor);
+            if (strcmp(criterios[j].valor, "NULO") == 0)
+                criterios[j].valor[0] = '\0';
+        }
+    }
+}
+
+// Essa função libera a memória usada pelo vetor de critérios.
+void destroi_criterios(struct chave_valor *criterios) {
+    free(criterios);
 }

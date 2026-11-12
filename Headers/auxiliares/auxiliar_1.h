@@ -1,5 +1,6 @@
 /*
  * João L A Nogueira - N usp: 16986970
+ * José Eduardo Constantino Nordemann - N usp: 16877738
  */
 //
 // Created by joao-lucas-nogueira on 11/09/2026.
@@ -36,5 +37,10 @@ int atende_criterios(const registro_dados *dado, const struct chave_valor *crite
 // Mensagens de erro e verificação de abertura
 void falha_processamento_arquivo(FILE *f);
 int verificar_abertura_arquivo(FILE *f);
+
+// Vetor de critérios (chave/valor) lido do teclado. Mantido do código do colega.
+struct chave_valor *cria_criterios(int quantidade);
+void adiciona_criterios(struct chave_valor *criterios, int quantidade);
+void destroi_criterios(struct chave_valor *criterios);
 
 #endif //TRABALHOED3_AUXILIAR_1_H

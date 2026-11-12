@@ -1,5 +1,6 @@
 /*
  * João L A Nogueira - N usp: 16986970
+ * José Eduardo Constantino Nordemann - N usp: 16877738
  *
  * Funcionalidade 9 (trabalho 2): cria o arquivo de índice primário indexaPoPs
  * a partir do arquivo de dados PoPs gerado pela funcionalidade 8.
@@ -13,10 +14,7 @@
 #include "../../Headers/fornecidas.h"
 #include "../../Headers/implementadas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
-#include "../../Headers/auxiliares/pops.h"
-
-// Tamanho fixo de cada registro do índice: idPoPs (4) + byteoffset (8)
-#define TAM_REGISTRO_INDICE_POPS 12
+#include "../../Headers/auxiliares/auxiliar_2.h"
 
 // Posição do campo idPoPs dentro do registro de dados, contada a partir do início do registro
 #define POS_ID_NO_REGISTRO_POPS 13
@@ -47,7 +45,7 @@ static int coletar_entradas(FILE *dados, const cabecalho_pops *cabecalho,
         return 0;
 
     // Os registros começam logo após o cabeçalho e terminam em proxByteOffset
-    int64_t offset = TAM_CABECALHO_POPS;
+    int64_t offset = CABECALHO_POPS;
     while (offset < cabecalho->proxByteOffset) {
         fseek(dados, offset, SEEK_SET);
 
@@ -127,6 +125,15 @@ void funcionalidade9(const char *binario_dados, const char *binario_indice) {
 
     // O índice precisa estar ordenado por idPoPs
     qsort(entradas, quantidade, sizeof(entrada_indice), comparar_entradas);
+
+    // idPoPs é chave primária: dois registros válidos com o mesmo id tornam o arquivo inválido
+    for (int i = 1; i < quantidade; i++) {
+        if (entradas[i].idPoPs == entradas[i - 1].idPoPs) {
+            free(entradas);
+            falha_processamento_arquivo(NULL);
+            return;
+        }
+    }
 
     // Grava o índice: status '0' durante a escrita, '1' ao final
     FILE *indice = fopen(binario_indice, "wb");
