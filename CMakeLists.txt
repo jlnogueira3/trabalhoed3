@@ -1,3 +1,4 @@
+# José Eduardo Constantino Nordemann - N usp: 16877738
 cmake_minimum_required(VERSION 3.20)
 
 project(trabalhoed3 C)
@@ -6,25 +7,36 @@ set(CMAKE_C_STANDARD 11)
 
 add_executable(trabalhoed3
         Source/main.c
-        Headers/registros.h
+        Source/cabecalho.c
+        Source/consulta.c
+        Source/criacao.c
+        Source/criterios.c
+        Source/erros.c
         Source/fornecidas.c
-        Headers/implementadas.h
+        Source/manipulacao.c
+        Source/pops_arquivo.c
+        Source/pops_consulta.c
+        Source/pops_criacao.c
+        Source/pops_entrada.c
+        Source/pops_manipulacao.c
+        Source/pops_operacoes.c
+        Source/pops_registro.c
+        Source/registro.c
+        Headers/cabecalho.h
+        Headers/consulta.h
+        Headers/criacao.h
+        Headers/criterios.h
+        Headers/erros.h
         Headers/fornecidas.h
-        Headers/auxiliares/auxiliar_1.h
-        Source/auxiliares/auxiliar_1.c
-        Source/implementadas/funcionalidade1.c
-        Source/implementadas/funcionalidade2.c
-        Source/implementadas/funcionalidade3.c
-        Source/implementadas/funcionalidade4.c
-        Source/implementadas/funcionalidade5.c
-        Source/implementadas/funcionalidade6.c
-        Source/implementadas/funcionalidade7.c
+        Headers/manipulacao.h
         Headers/pops.h
-        Headers/auxiliares/auxiliar_2.h
-        Source/auxiliares/auxiliar_2.c
-        Source/auxiliares/pops_entrada.c
-        Source/implementadas/funcionalidade11.c
-        Source/implementadas/funcionalidade12.c
-        Source/implementadas/funcionalidade13.c
-        Source/implementadas/funcionalidade14.c
+        Headers/pops_arquivo.h
+        Headers/pops_consulta.h
+        Headers/pops_criacao.h
+        Headers/pops_entrada.h
+        Headers/pops_manipulacao.h
+        Headers/pops_operacoes.h
+        Headers/pops_registro.h
+        Headers/registro.h
+        Headers/registros.h
 )

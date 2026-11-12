@@ -4,8 +4,13 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include "../Headers/implementadas.h"
-#include "../Headers/auxiliares/auxiliar_2.h"
+#include "../Headers/criacao.h"
+#include "../Headers/consulta.h"
+#include "../Headers/manipulacao.h"
+#include "../Headers/pops_criacao.h"
+#include "../Headers/pops_consulta.h"
+#include "../Headers/pops_manipulacao.h"
+#include "../Headers/pops_entrada.h"
 
 // Lê a opção da funcionalidade e os argumentos, e chama a funcionalidade correspondente
 int main(void) {
@@ -13,7 +18,7 @@ int main(void) {
     char arg1[100];
     char arg2[100];
 
-    // Lemos a opção e o primeiro argumento. A funcionalidade 2 recebe só o arquivo.
+        // A opção e o primeiro argumento são lidos. A funcionalidade 2 recebe só o arquivo.
     if (scanf("%99s %99s", opcao, arg1) != 2) {
         printf("Falha no processamento do arquivo.\n");
         return 0;

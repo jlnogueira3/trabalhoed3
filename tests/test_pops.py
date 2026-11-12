@@ -1,3 +1,4 @@
+# José Eduardo Constantino Nordemann - N usp: 16877738
 """Testes de integracao das funcionalidades 11 a 14, sem depender de 8 a 10.
 
 Uso: python tests/test_pops.py --program caminho/do/programaTrab

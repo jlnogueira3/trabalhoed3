@@ -1,20 +1,21 @@
+// José Eduardo Constantino Nordemann - N usp: 16877738
 /*
  * João L A Nogueira - N usp: 16986970
- * José Eduardo Constantino Nordemann - N usp: 16877738
- *
- * Funcionalidade 8 (trabalho 2): lê registros de um CSV de PoPs e grava
- * o arquivo de dados PoPs, usando as funções de auxiliar_2 do arquivo de dados.
  */
+
+#include "../Headers/pops_criacao.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-#include "../../Headers/registros.h"
-#include "../../Headers/fornecidas.h"
-#include "../../Headers/implementadas.h"
-#include "../../Headers/auxiliares/auxiliar_1.h"
-#include "../../Headers/auxiliares/auxiliar_2.h"
+#include "../Headers/fornecidas.h"
+#include "../Headers/registros.h"
+#include "../Headers/pops.h"
+#include "../Headers/erros.h"
+#include "../Headers/pops_arquivo.h"
+#include "../Headers/pops_registro.h"
 
 #define TAM_LINHA_CSV 512
 #define MAX_COLUNAS_CSV 16
@@ -28,6 +29,7 @@
 static int separar_campos(char *linha, char *campos[], int max) {
     int n = 0;
     campos[n++] = linha;
+    // Cada vírgula encerra um campo e o próximo começa logo depois dela
     for (char *p = linha; *p != '\0' && n < max; p++) {
         if (*p == ',') {
             *p = '\0';
@@ -61,7 +63,7 @@ void funcionalidade8(const char *csv, const char *binario) {
 
     // Cabeçalho inicial, com status '0' até o fim da escrita
     cabecalho_pops cabecalho;
-    cabecalho.status = '0';
+    cabecalho.status = STATUS_INCONSISTENTE;
     cabecalho.topoLista = -1;
     cabecalho.proxByteOffset = CABECALHO_POPS;
     cabecalho.nroRegRem = 0;
@@ -82,6 +84,7 @@ void funcionalidade8(const char *csv, const char *binario) {
     int ncolunas = separar_campos(linha, campos, MAX_COLUNAS_CSV);
 
     int col_id = -1, col_nome = -1, col_pais = -1, col_sigla = -1;
+    // Procura a posição de cada coluna exigida, pelo nome do cabeçalho do CSV
     for (int i = 0; i < ncolunas; i++) {
         if (strcmp(campos[i], "idPoPs") == 0)
             col_id = i;
@@ -130,7 +133,7 @@ void funcionalidade8(const char *csv, const char *binario) {
         sigla[TAM_SIGLA_PAIS] = '\0';
 
         dados_pops dado;
-        dado.removido = '0';
+        dado.removido = REGISTRO_ATIVO;
         dado.encadeamentoLista = -1;
         dado.idPoPs = (int32_t)atoi(campos[col_id]);
         memcpy(dado.siglaPais, sigla, TAM_SIGLA_PAIS + 1);
@@ -159,4 +162,135 @@ void funcionalidade8(const char *csv, const char *binario) {
     fclose(leitura);
 
     BinarioNaTela((char *)binario);
+}
+
+// Posição do campo idPoPs dentro do registro de dados, contada a partir do início do registro
+#define POS_ID_NO_REGISTRO_POPS 13
+
+// Percorre os registros do arquivo de dados e preenche o vetor de entradas.
+// Registros removidos são pulados. Retorna 1 em sucesso, 0 em erro.
+static int coletar_entradas(FILE *dados, const cabecalho_pops *cabecalho,
+                            entrada_indice_pops **entradas_saida, int *quantidade_saida) {
+    int capacidade = cabecalho->nroPoPs > 0 ? cabecalho->nroPoPs : 1;
+    int n = 0;
+    entrada_indice_pops *entradas = malloc(capacidade * sizeof(entrada_indice_pops));
+    if (entradas == NULL)
+        return 0;
+
+    // Os registros começam logo após o cabeçalho e terminam em proxByteOffset
+    int64_t offset = CABECALHO_POPS;
+    while (offset < cabecalho->proxByteOffset) {
+        fseek(dados, offset, SEEK_SET);
+
+        // Lê só o removido e o tamanho do registro para saber onde está o próximo
+        char removido;
+        int tamanho;
+        if (fread(&removido, sizeof(char), 1, dados) != 1 ||
+            fread(&tamanho, sizeof(int), 1, dados) != 1 ||
+            tamanho <= 0) {
+            free(entradas);
+            return 0;
+        }
+
+        // Registro válido: lê o idPoPs e guarda a entrada no índice
+        if (removido == REGISTRO_ATIVO) {
+            int idPoPs;
+            fseek(dados, offset + POS_ID_NO_REGISTRO_POPS, SEEK_SET);
+            if (fread(&idPoPs, sizeof(int), 1, dados) != 1) {
+                free(entradas);
+                return 0;
+            }
+
+            // Aumenta o vetor se a estimativa inicial (nroPoPs) foi pequena
+            if (n == capacidade) {
+                capacidade *= 2;
+                entrada_indice_pops *novo =
+                    realloc(entradas, capacidade * sizeof(entrada_indice_pops));
+                if (novo == NULL) {
+                    free(entradas);
+                    return 0;
+                }
+                entradas = novo;
+            }
+
+            entradas[n].idPoPs = idPoPs;
+            entradas[n].byteoffset = offset;
+            n++;
+        }
+
+        // Avança para o próximo registro usando o tamanho lido
+        offset += tamanho;
+    }
+
+    // O último registro deve terminar exatamente em proxByteOffset
+    if (offset != cabecalho->proxByteOffset) {
+        free(entradas);
+        return 0;
+    }
+
+    *entradas_saida = entradas;
+    *quantidade_saida = n;
+    return 1;
+}
+
+// Cria o arquivo de índice primário a partir do arquivo de dados PoPs.
+// O índice só é criado depois que o arquivo de dados foi lido por completo.
+void funcionalidade9(const char *binario_dados, const char *binario_indice) {
+    // O arquivo de dados só é lido
+    FILE *dados = fopen(binario_dados, "rb");
+    if (verificar_abertura_arquivo(dados) == 0)
+        return;
+
+    // Só usa o arquivo de dados se o cabeçalho estiver consistente
+    cabecalho_pops cabecalho;
+    if (leitura_cabecalho_pops(dados, &cabecalho) == 0) {
+        falha_processamento_arquivo(dados);
+        return;
+    }
+
+    // Coleta as entradas dos registros válidos
+    entrada_indice_pops *entradas = NULL;
+    int quantidade = 0;
+    if (coletar_entradas(dados, &cabecalho, &entradas, &quantidade) == 0) {
+        falha_processamento_arquivo(dados);
+        return;
+    }
+    fclose(dados);
+
+    // O índice precisa estar ordenado por idPoPs
+    qsort(entradas, quantidade, sizeof(entrada_indice_pops), comparar_indice_pops);
+
+    // idPoPs é chave primária: dois registros válidos com o mesmo id tornam o arquivo inválido
+    for (int i = 1; i < quantidade; i++) {
+        if (entradas[i].idPoPs == entradas[i - 1].idPoPs) {
+            free(entradas);
+            falha_processamento_arquivo(NULL);
+            return;
+        }
+    }
+
+    // Grava o índice: status '0' durante a escrita, '1' ao final
+    FILE *indice = fopen(binario_indice, "wb");
+    if (indice == NULL) {
+        free(entradas);
+        verificar_abertura_arquivo(indice);
+        return;
+    }
+
+    char status = STATUS_INCONSISTENTE;
+    fwrite(&status, sizeof(char), 1, indice);
+
+    for (int i = 0; i < quantidade; i++) {
+        fwrite(&entradas[i].idPoPs, sizeof(int), 1, indice);
+        fwrite(&entradas[i].byteoffset, sizeof(int64_t), 1, indice);
+    }
+
+    status = STATUS_CONSISTENTE;
+    fseek(indice, 0, SEEK_SET);
+    fwrite(&status, sizeof(char), 1, indice);
+
+    fclose(indice);
+    free(entradas);
+
+    BinarioNaTela((char *)binario_indice);
 }
