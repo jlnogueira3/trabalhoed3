@@ -290,3 +290,11 @@ Quando o grupo tiver mais de um integrante, uma linha por integrante, no mesmo f
 - `tamanhoRegistro` é o **tamanho total do registro**, incluindo `removido` (1 byte) e o próprio campo `tamanhoRegistro` (4 bytes). Confirmado: com a versão que não contava esses 5 bytes, o checksum saiu 540 abaixo do esperado (108 registros × 5).
 - `proxByteOffset` começa em **25** (tamanho do cabeçalho), porque os byte offsets são absolutos. A especificação diz "iniciado com '0'", mas o checksum esperado só bate com o valor 25 no cabeçalho.
 - Saída esperada para `8 PoPs.csv PoPs.bin` com o `PoPs.csv` de 108 registros: `3778.840000`.
+
+## 22. Índice primário indexaPoPs (funcionalidade 9)
+
+- O índice tem 1 byte de cabeçalho (`status`) e registros de 12 bytes: `idPoPs` (4) + `byteoffset` (8). Os valores de `byteoffset` são os offsets absolutos do registro no arquivo de dados.
+- Os registros do índice são ordenados por `idPoPs` crescente (`qsort`). Só entram registros válidos do arquivo de dados (`removido == '0'`).
+- O índice só é criado depois que o arquivo de dados foi lido por completo. Se o arquivo de dados estiver inconsistente ou corrompido, nenhum índice é gravado.
+- Status do índice: `'0'` durante a gravação e `'1'` ao final.
+- Os dados de entrada são lidos em `rb`, e o arquivo de dados não é alterado.

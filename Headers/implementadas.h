@@ -19,5 +19,6 @@ void funcionalidade7(const char *binario, int n);
 
 // Trabalho 2: arquivo de dados PoPs
 void funcionalidade8(const char *csv, const char *binario);
+void funcionalidade9(const char *binario_dados, const char *binario_indice);
 
 #endif

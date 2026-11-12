@@ -51,6 +51,10 @@ int main(void) {
         case 8:
             funcionalidade8(arg1, arg2);
             break;
+        case 9:
+            // arg1 é o arquivo de dados PoPs e arg2 é o arquivo de índice a ser criado
+            funcionalidade9(arg1, arg2);
+            break;
     }
     return 0;
 }
