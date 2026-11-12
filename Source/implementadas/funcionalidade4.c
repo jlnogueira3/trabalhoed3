@@ -1,3 +1,6 @@
+/*
+ * João L A Nogueira - N usp: 16986970
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,50 +9,42 @@
 #include "../../Headers/fornecidas.h"
 #include "../../Headers/auxiliares/auxiliar_1.h"
 
-//Acessa diretamente um registro por meio de seu RRN e o exibe caso ele
-//exista e não esteja removido.
-
-void funcionalidade4(const char *binario, int rrn){
-    FILE *f;
-    f = fopen(binario, "rb");
-
-    // primeiro devemos verificar, assim como nas funcionalidades anteriores, a consistência do
-    // arquivo
-    if(verificar_abertura_arquivo(f) == 0)
+// Acessa diretamente um registro pelo seu RRN e o exibe caso ele exista e não esteja removido.
+void funcionalidade4(const char *binario, int rrn) {
+    // Somente leitura
+    FILE *f = fopen(binario, "rb");
+    if (verificar_abertura_arquivo(f) == 0)
         return;
 
+    // Lê o cabeçalho. Retorna 0 se o arquivo estiver inconsistente.
     registro_cabecalho cabecalho;
-
-    if(leitura_cabecalho(f, &cabecalho) == 0){
+    if (leitura_cabecalho(f, &cabecalho) == 0) {
         falha_processamento_arquivo(f);
         return;
     }
 
-    if(cabecalho.status != '1'){       //arquivo inconsistente nao pode ser consultado
-        falha_processamento_arquivo(f);
-        return;
-    }
-
-    if(0 > rrn || rrn >= cabecalho.proxRRN){    // 0 <= rrn < proxRRN
+    // RRN válido: 0 <= rrn < proxRRN
+    if (rrn < 0 || rrn >= cabecalho.proxRRN) {
         printf("Registro inexistente.\n");
         fclose(f);
         return;
     }
-    long int pos = 17L + (long)rrn*18L;
-    fseek(f, pos, SEEK_SET);      //fseek retorna 0 quando funciona
 
-    //LEITURA DO DADO
+    // Posiciona o arquivo no início do registro desejado
+    fseek(f, posicao_registro(rrn), SEEK_SET);
+
     registro_dados dado;
-    if(leitura_dados(&dado, f) != 1){
+    int resultado = leitura_dados(&dado, f);
+
+    if (resultado == LEITURA_ERRO) {
         falha_processamento_arquivo(f);
         return;
     }
 
-    //print do dado
-    if(dado.removido == '1')
+    if (resultado == LEITURA_REMOVIDO)
         printf("Registro inexistente.\n");
-    else{
+    else
         print_dados(dado);
-    }
+
     fclose(f);
 }

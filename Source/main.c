@@ -1,60 +1,44 @@
+/*
+ * João L A Nogueira - N usp: 16986970
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "../Headers/implementadas.h"
 
+// Lê a opção da funcionalidade e os argumentos, e chama a funcionalidade correspondente
 int main(void) {
-    // Precisamos ler a opcão que vamos utilizar
     char opcao[100];
     char arg1[100];
     char arg2[100];
-    registro_cabecalho cabecalho={
-        cabecalho.status = '0',
-        cabecalho.topo_pilha = -1,
-        cabecalho.proxRRN = 0,
-        cabecalho.nroRegRem = 0,
-        cabecalho.nroPares = 0,
-    };
-    scanf("%99s %99s %99s", opcao,arg1,arg2);
-    long int opcao_int;
-    opcao_int = strtol(opcao,NULL,10);
 
+    // Lemos a opção e os dois primeiros argumentos da entrada padrão
+    scanf("%99s %99s %99s", opcao, arg1, arg2);
 
-// O próprio compilador reclamou no scanf do uso direto do "%d"
-    // então decidi fazer a conversão usando o strtol para então levar ao
-    // switch case
-
+    // A opção é lida como string e convertida para inteiro com strtol,
+    // porque o scanf com "%d" não é usado aqui
+    long int opcao_int = strtol(opcao, NULL, 10);
 
     switch (opcao_int) {
-        case 1:{
-            /*Devemos chamar a função com os endereços dos argumentos
-             utilizados, só lembrando que *&arg1 é equivalente a arg1,
-             escrevi para lembrar de como fiz a passagem de argumentos
-            */
-            funcionalidade1(arg1,arg2,&cabecalho);
+        case 1:
+            funcionalidade1(arg1, arg2);
             break;
-        }
-        case 2:{
-            /* Diferente da funcionalidade 1, a funcionalidade 2 recebe apenas o argumento
-             * arg1 e o registro de cabecalho
-             */
-            funcionalidade2(arg1,&cabecalho);
+        case 2:
+            funcionalidade2(arg1);
             break;
-        }
-        case 3:{
-            funcionalidade3(arg1, &cabecalho, arg2);
+        case 3:
+            funcionalidade3(arg1, arg2);
             break;
-        }
-        case 4:{
-            int rrn = (int)strtol(arg2, NULL, 10);   //string -> long -> int (cast)
+        case 4: {
+            int rrn = (int)strtol(arg2, NULL, 10);
             funcionalidade4(arg1, rrn);
             break;
         }
-        case 5:{
-            int n = (int)strtol(arg2, NULL, 10);    //mesma coisa do case 4
+        case 5: {
+            int n = (int)strtol(arg2, NULL, 10);
             funcionalidade5(arg1, n);
             break;
         }
-        case 6:{
+        case 6: {
             int n = (int)strtol(arg2, NULL, 10);
             funcionalidade6(arg1, n);
             break;
@@ -64,5 +48,9 @@ int main(void) {
             funcionalidade7(arg1, n);
             break;
         }
+        case 8:
+            funcionalidade8(arg1, arg2);
+            break;
     }
+    return 0;
 }
