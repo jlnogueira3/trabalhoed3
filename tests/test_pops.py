@@ -62,9 +62,9 @@ class PoPsTests(unittest.TestCase):
         self.index.write_bytes(b"1" + b"".join(INDEX.pack(*entry) for entry in active))
         return offsets
 
-    def run_program(self, option, requests, body="", success=True):
+    def run_program(self, option, requests, body="", success=True, files="dados.bin indice.bin"):
         result = subprocess.run(
-            [str(PROGRAM)], input=f"{option} dados.bin indice.bin {requests}\n{body}",
+            [str(PROGRAM)], input=f"{option} {files} {requests}\n{body}",
             cwd=self.folder, text=True, encoding="utf-8", capture_output=True, timeout=10,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -288,14 +288,57 @@ class PoPsTests(unittest.TestCase):
 
     def test_duplicate_ids_do_not_get_written(self):
         self.create([(1, "A", "", ""), (2, "B", "", "")])
-        payload = self.data.read_bytes()[HEADER.size:]
+        original = self.data.read_bytes(), self.index.read_bytes()
         self.assertEqual(self.run_program(13, 1, '1 "DUPLICATE" NULO NULO\n', success=False), FAILURE)
-        self.assertEqual(self.data.read_bytes()[HEADER.size:], payload)
-        self.assertEqual(self.data.read_bytes()[:1], b"0")
-        self.assertEqual(self.index.read_bytes()[:1], b"0")
-        self.create([(1, "A", "", ""), (2, "B", "", "")])
+        self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
         self.assertEqual(self.run_program(14, 1, '1 idPoPs 1\n1 idPoPs 2\n', success=False), FAILURE)
-        self.assertEqual(self.data.read_bytes()[HEADER.size:], payload)
+        self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
+        self.assertEqual(self.run_program(14, 1, '1 nomePais NULO\n1 idPoPs 3\n', success=False), FAILURE)
+        self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
+
+    def test_duplicate_ids_keep_earlier_requests_consistent(self):
+        self.create([(1, "A", "", ""), (2, "B", "", "")])
+        body = '3 "C" NULO NULO\n3 "DUPLICATE" NULO NULO\n'
+        self.assertEqual(self.run_program(13, 2, body, success=False), FAILURE)
+        active, _ = self.inspect()
+        self.assertEqual(active[3]["name"], "C")
+
+        body = '1 idPoPs 3\n1 idPoPs 4\n1 idPoPs 2\n1 idPoPs 4\n'
+        self.assertEqual(self.run_program(14, 2, body, success=False), FAILURE)
+        active, _ = self.inspect()
+        self.assertEqual(set(active), {1, 2, 4})
+        self.assertEqual(active[4]["name"], "C")
+
+    def test_csv_normalizes_blank_fields_and_rejects_duplicate_ids(self):
+        csv_path = self.folder / "entrada.csv"
+        header = "idPoPs,siglaPais,nomePoPs,nomePais\n"
+        rows = "1, , ,\t\n2,,NOVA CIDADE,BRASIL\n"
+        csv_path.write_text(header + rows, encoding="utf-8")
+        self.run_program(8, 0, files="entrada.csv dados.bin")
+        self.run_program(9, 0)
+        active, _ = self.inspect()
+        self.assertEqual((active[1]["name"], active[1]["country"], active[1]["code"]), ("", "", ""))
+        self.assertEqual((active[2]["name"], active[2]["code"]), ("NOVA CIDADE", ""))
+
+        csv_path.write_text(header + rows + "1,BR,REPETIDO,BRASIL\n", encoding="utf-8")
+        self.assertEqual(self.run_program(8, 0, files="entrada.csv dados.bin"), FAILURE)
+        status, _, _, _, _ = HEADER.unpack_from(self.data.read_bytes())
+        self.assertEqual(status, b"0")
+        self.assertNotIn(b"REPETIDO", self.data.read_bytes())
+
+    def test_index_creation_rejects_invalid_record_control(self):
+        offsets = self.create([(1, "A", "", ""), (2, "B", "", "")], removed=(1,))
+        original = self.data.read_bytes()
+        self.run_program(9, 0)
+        self.inspect()
+        index = self.index.read_bytes()
+        for flag, size in ((b"x", 22), (b"0", 20), (b"0", 23)):
+            with self.subTest(flag=flag, size=size):
+                raw = bytearray(original)
+                CONTROL.pack_into(raw, offsets[2], flag, size, -1)
+                self.data.write_bytes(raw)
+                self.assertEqual(self.run_program(9, 0), FAILURE)
+                self.assertEqual(self.index.read_bytes(), index)
 
     def test_invalid_input_rejected(self):
         self.create()

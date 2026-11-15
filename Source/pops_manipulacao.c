@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "../Headers/fornecidas.h"
 #include "../Headers/pops.h"
@@ -74,8 +75,7 @@ void funcionalidade13(const char *binario, const char *nome_indice, int n) {
     cabecalho_pops cabecalho;
     indice_pops indice;
     int ok = abrir_arquivos_pops(binario, nome_indice, 1, &f, &fi, &cabecalho, &indice);
-    if (ok)
-        ok = iniciar_alteracoes_pops(f, fi);
+    int alterou = 0, id_repetido = 0;
 
     // Cada inserção lê seu registro e o grava logo em seguida.
     for (int i = 0; ok && i < n; i++) {
@@ -86,16 +86,27 @@ void funcionalidade13(const char *binario, const char *nome_indice, int n) {
             ok = 0;
             break;
         }
-        ok = inserir_registro_pops(f, &cabecalho, &indice, &dado);
+        // Confere a chave antes de mudar o status ou gravar o registro.
+        size_t entrada;
+        id_repetido = buscar_indice_pops(&indice, dado.idPoPs, &entrada);
+        if (!id_repetido && !alterou) {
+            ok = iniciar_alteracoes_pops(f, fi);
+            alterou = ok;
+        }
+        if (ok && !id_repetido)
+            ok = inserir_registro_pops(f, &cabecalho, &indice, &dado);
         destroi_dados_pops(&dado);
+        if (id_repetido)
+            break;
     }
 
     // O indice fica atualizado em memoria a cada insercao e e ordenado ao gravar.
-    if (ok)
+    // Uma chave repetida interrompe o lote, mas as inserções anteriores são finalizadas.
+    if (ok && alterou)
         ok = finalizar_alteracoes_pops(f, &fi, nome_indice, &cabecalho, &indice);
     if (!fechar_arquivos_pops(f, fi, &indice))
         ok = 0;
-    if (!ok)
+    if (!ok || id_repetido)
         printf("Falha no processamento do arquivo.\n");
     else {
         BinarioNaTela((char *)binario);
@@ -103,20 +114,32 @@ void funcionalidade13(const char *binario, const char *nome_indice, int n) {
     }
 }
 
+// A última atribuição de idPoPs é a que vale. Só um registro pode receber essa chave.
+static int atualizacao_repete_id_pops(const indice_pops *indice, const int64_t *posicoes,
+                                     size_t encontrados, const criterio_pops *campos, int quantidade) {
+    for (int i = quantidade - 1; i >= 0; i--) {
+        if (strcmp(campos[i].chave, "idPoPs") == 0) {
+            int32_t id = (int32_t)strtol(campos[i].valor, NULL, 10);
+            size_t entrada;
+            return encontrados > 1 ||
+                  (buscar_indice_pops(indice, id, &entrada) &&
+                   indice->entradas[entrada].byteoffset != posicoes[0]);
+        }
+    }
+    return 0;
+}
+
 // Aplica uma atualizacao e decide se o registro cabe no espaco que ja ocupava.
 static int atualizar_registro_pops(FILE *f, cabecalho_pops *cabecalho, indice_pops *indice,
                                   int64_t pos, dados_pops *dado,
                                   const criterio_pops *atualizacoes, int quantidade) {
     int32_t id_antigo = dado->idPoPs;
-    size_t entrada, repetido;
+    size_t entrada;
     if (!buscar_indice_pops(indice, id_antigo, &entrada) ||
         indice->entradas[entrada].byteoffset != pos ||
        !atualizar_campos_pops(dado, atualizacoes, quantidade))
         return 0;
 
-    // Nao podemos trocar o id por um que pertence a outro registro ativo.
-    if (buscar_indice_pops(indice, dado->idPoPs, &repetido) && repetido != entrada)
-        return 0;
     int32_t necessario;
     if (!tamanho_dados_pops(dado, &necessario))
         return 0;
@@ -147,8 +170,7 @@ void funcionalidade14(const char *binario, const char *nome_indice, int n) {
     cabecalho_pops cabecalho;
     indice_pops indice;
     int ok = abrir_arquivos_pops(binario, nome_indice, 1, &f, &fi, &cabecalho, &indice);
-    if (ok)
-        ok = iniciar_alteracoes_pops(f, fi);
+    int alterou = 0, id_repetido = 0;
 
     // Cada solicitação de atualização tem seus próprios critérios e campos.
     for (int i = 0; ok && i < n; i++) {
@@ -171,8 +193,19 @@ void funcionalidade14(const char *binario, const char *nome_indice, int n) {
         ok = buscar_registros_pops(f, &cabecalho, &indice, criterios, quantidade_criterios,
                                    &posicoes, &encontrados);
         destroi_criterios_pops(criterios, quantidade_criterios);
+
+        // Confere se a nova chave seria repetida antes de alterar qualquer registro da solicitação.
+        if (ok && encontrados > 0) {
+            id_repetido = atualizacao_repete_id_pops(&indice, posicoes, encontrados,
+                                                   atualizacoes, quantidade_atualizacoes);
+            if (!id_repetido && !alterou) {
+                ok = iniciar_alteracoes_pops(f, fi);
+                alterou = ok;
+            }
+        }
+
         // Cada registro encontrado é lido e atualizado; a posição vem da busca.
-        for (size_t j = 0; ok && j < encontrados; j++) {
+        for (size_t j = 0; ok && !id_repetido && j < encontrados; j++) {
             dados_pops dado;
             ok = leitura_dados_pops(f, posicoes[j], cabecalho.proxByteOffset, &dado);
             if (ok) {
@@ -183,13 +216,16 @@ void funcionalidade14(const char *binario, const char *nome_indice, int n) {
         }
         free(posicoes);
         destroi_criterios_pops(atualizacoes, quantidade_atualizacoes);
+        if (id_repetido)
+            break;
     }
 
-    if (ok)
+    // Se uma chave repetida interromper o lote, finaliza as atualizações anteriores.
+    if (ok && alterou)
         ok = finalizar_alteracoes_pops(f, &fi, nome_indice, &cabecalho, &indice);
     if (!fechar_arquivos_pops(f, fi, &indice))
         ok = 0;
-    if (!ok)
+    if (!ok || id_repetido)
         printf("Falha no processamento do arquivo.\n");
     else {
         BinarioNaTela((char *)binario);

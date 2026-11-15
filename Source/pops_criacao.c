@@ -24,7 +24,7 @@
 #define TAM_SIGLA_PAIS 2
 
 // Separa uma linha do CSV em campos, trocando cada vírgula por '\0'.
-// Campos vazios são mantidos como strings vazias (valores nulos).
+// Campos vazios ou só com espaços viram strings vazias (valores nulos).
 // Retorna a quantidade de campos encontrados.
 static int separar_campos(char *linha, char *campos[], int max) {
     int n = 0;
@@ -36,11 +36,16 @@ static int separar_campos(char *linha, char *campos[], int max) {
             campos[n++] = p + 1;
         }
     }
+    for (int i = 0; i < n; i++) {
+        if (campos[i][strspn(campos[i], " \t")] == '\0')
+            campos[i][0] = '\0';
+    }
     return n;
 }
 
 // Fecha os arquivos e exibe a mensagem de falha.
-static void encerrar_com_falha(FILE *leitura, FILE *escrita) {
+static void encerrar_com_falha(FILE *leitura, FILE *escrita, indice_pops *indice) {
+    free(indice->entradas);
     fclose(leitura);
     falha_processamento_arquivo(escrita);
 }
@@ -62,6 +67,7 @@ void funcionalidade8(const char *csv, const char *binario) {
     }
 
     // Cabeçalho inicial, com status '0' até o fim da escrita
+    indice_pops indice = {0};
     cabecalho_pops cabecalho;
     cabecalho.status = STATUS_INCONSISTENTE;
     cabecalho.topoLista = -1;
@@ -69,7 +75,7 @@ void funcionalidade8(const char *csv, const char *binario) {
     cabecalho.nroRegRem = 0;
     cabecalho.nroPoPs = 0;
     if (!escrever_cabecalho_pops(escrita, &cabecalho)) {
-        encerrar_com_falha(leitura, escrita);
+        encerrar_com_falha(leitura, escrita, &indice);
         return;
     }
 
@@ -77,7 +83,7 @@ void funcionalidade8(const char *csv, const char *binario) {
     char linha[TAM_LINHA_CSV];
     char *campos[MAX_COLUNAS_CSV];
     if (fgets(linha, sizeof(linha), leitura) == NULL) {
-        encerrar_com_falha(leitura, escrita);
+        encerrar_com_falha(leitura, escrita, &indice);
         return;
     }
     linha[strcspn(linha, "\r\n")] = '\0';
@@ -98,7 +104,7 @@ void funcionalidade8(const char *csv, const char *binario) {
 
     // O CSV precisa ter as quatro colunas da especificação
     if (col_id < 0 || col_nome < 0 || col_pais < 0 || col_sigla < 0) {
-        encerrar_com_falha(leitura, escrita);
+        encerrar_com_falha(leitura, escrita, &indice);
         return;
     }
 
@@ -116,20 +122,21 @@ void funcionalidade8(const char *csv, const char *binario) {
         if (col_pais > maior_coluna) maior_coluna = col_pais;
         if (col_sigla > maior_coluna) maior_coluna = col_sigla;
         if (ncolunas <= maior_coluna) {
-            encerrar_com_falha(leitura, escrita);
+            encerrar_com_falha(leitura, escrita, &indice);
             return;
         }
 
         // Os caracteres '|' são reservados como delimitador dos campos variáveis
         if (strchr(campos[col_nome], '|') != NULL || strchr(campos[col_pais], '|') != NULL) {
-            encerrar_com_falha(leitura, escrita);
+            encerrar_com_falha(leitura, escrita, &indice);
             return;
         }
 
         // siglaPais tem 2 bytes. Vazio vira "$$" (nulo); caractere faltante vira '$'.
         char sigla[TAM_SIGLA_PAIS + 1];
+        size_t tamanho_sigla = strlen(campos[col_sigla]);
         for (int i = 0; i < TAM_SIGLA_PAIS; i++)
-            sigla[i] = campos[col_sigla][i] != '\0' ? campos[col_sigla][i] : '$';
+            sigla[i] = (size_t)i < tamanho_sigla ? campos[col_sigla][i] : '$';
         sigla[TAM_SIGLA_PAIS] = '\0';
 
         dados_pops dado;
@@ -140,10 +147,18 @@ void funcionalidade8(const char *csv, const char *binario) {
         dado.nomePoPs = campos[col_nome];
         dado.nomePais = campos[col_pais];
 
+        // Guarda os IDs já lidos para rejeitar uma chave repetida antes de gravar o registro.
+        size_t entrada;
+        if (buscar_indice_pops(&indice, dado.idPoPs, &entrada) ||
+            !adicionar_indice_pops(&indice, dado.idPoPs, cabecalho.proxByteOffset)) {
+            encerrar_com_falha(leitura, escrita, &indice);
+            return;
+        }
+
         // tamanhoRegistro é o tamanho total do registro, incluindo o controle
         if (!tamanho_dados_pops(&dado, &dado.tamanhoRegistro) ||
             !escrever_dados_pops(escrita, cabecalho.proxByteOffset, &dado)) {
-            encerrar_com_falha(leitura, escrita);
+            encerrar_com_falha(leitura, escrita, &indice);
             return;
         }
 
@@ -154,18 +169,16 @@ void funcionalidade8(const char *csv, const char *binario) {
     // Arquivo completo: marca como consistente e regrava o cabeçalho no início
     cabecalho.status = STATUS_CONSISTENTE;
     if (!escrever_cabecalho_pops(escrita, &cabecalho) || fflush(escrita) != 0) {
-        encerrar_com_falha(leitura, escrita);
+        encerrar_com_falha(leitura, escrita, &indice);
         return;
     }
 
+    free(indice.entradas);
     fclose(escrita);
     fclose(leitura);
 
     BinarioNaTela((char *)binario);
 }
-
-// Posição do campo idPoPs dentro do registro de dados, contada a partir do início do registro
-#define POS_ID_NO_REGISTRO_POPS 13
 
 // Percorre os registros do arquivo de dados e preenche o vetor de entradas.
 // Registros removidos são pulados. Retorna 1 em sucesso, 0 em erro.
@@ -180,23 +193,17 @@ static int coletar_entradas(FILE *dados, const cabecalho_pops *cabecalho,
     // Os registros começam logo após o cabeçalho e terminam em proxByteOffset
     int64_t offset = CABECALHO_POPS;
     while (offset < cabecalho->proxByteOffset) {
-        fseek(dados, offset, SEEK_SET);
-
-        // Lê só o removido e o tamanho do registro para saber onde está o próximo
-        char removido;
-        int tamanho;
-        if (fread(&removido, sizeof(char), 1, dados) != 1 ||
-            fread(&tamanho, sizeof(int), 1, dados) != 1 ||
-            tamanho <= 0) {
+        // Valida os campos de controle e deixa o ponteiro logo antes do idPoPs.
+        dados_pops dado;
+        if (!ler_controle_pops(dados, offset, cabecalho->proxByteOffset, &dado)) {
             free(entradas);
             return 0;
         }
 
         // Registro válido: lê o idPoPs e guarda a entrada no índice
-        if (removido == REGISTRO_ATIVO) {
-            int idPoPs;
-            fseek(dados, offset + POS_ID_NO_REGISTRO_POPS, SEEK_SET);
-            if (fread(&idPoPs, sizeof(int), 1, dados) != 1) {
+        if (dado.removido == REGISTRO_ATIVO) {
+            int32_t idPoPs;
+            if (fread(&idPoPs, sizeof(idPoPs), 1, dados) != 1) {
                 free(entradas);
                 return 0;
             }
@@ -219,7 +226,7 @@ static int coletar_entradas(FILE *dados, const cabecalho_pops *cabecalho,
         }
 
         // Avança para o próximo registro usando o tamanho lido
-        offset += tamanho;
+        offset += dado.tamanhoRegistro;
     }
 
     // O último registro deve terminar exatamente em proxByteOffset
