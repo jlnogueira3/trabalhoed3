@@ -274,7 +274,7 @@ Quando o grupo tiver mais de um integrante, uma linha por integrante, no mesmo f
 - Trabalho feito com alunos de turmas diferentes: diminuição expressiva.
 - Palavras ofensivas em arquivos ou em qualquer material entregue: nota zero na parte.
 - Plágio: nota zero para todos os trabalhos envolvidos.
-- **Uso de ferramentas de inteligência artificial: regra exclusiva do trabalho 1** (desconto rigoroso). O trabalho 2 (`SCC0607022026trabalho02.pdf`) não tem essa regra nos critérios nem nas restrições, e o uso de IA não aparece como penalidade nele.
+- **Uso de ferramentas de inteligência artificial.** A regra consta no trabalho 1, com desconto rigoroso, e está ausente dos critérios do trabalho 2. O [enunciado do Trabalho Prático 3](SCC0607022026trabalho03.pdf#page=17) também prevê desconto rigoroso pelo uso de IA na implementação.
 - **Observação da capa (trabalhos 1 e 2):** "A solução deve ser proposta exclusivamente pelos alunos com base nos conhecimentos adquiridos nas aulas." Essa frase não é critério de penalidade, mas vale ter em mente ao revisar o código.
 
 **Restrições técnicas (trabalho 2, reforçadas pelo trabalho 1):**
@@ -298,3 +298,15 @@ Quando o grupo tiver mais de um integrante, uma linha por integrante, no mesmo f
 - O índice só é criado depois que o arquivo de dados foi lido por completo. Se o arquivo de dados estiver inconsistente ou corrompido, nenhum índice é gravado.
 - Status do índice: `'0'` durante a gravação e `'1'` ao final.
 - Os dados de entrada são lidos em `rb`, e o arquivo de dados não é alterado.
+
+## 23. Trabalho Prático 3
+
+O [guia do TP3](TRABALHO3.md) descreve as funcionalidades 15 a 20.
+Na ordenação da 15, o enunciado permite manter os dados em RAM e exige
+um novo binário sem registros logicamente removidos. O layout herdado
+de cada tipo determina a leitura e a escrita campo a campo.
+
+As funções 16 a 20 recebem os arquivos de dados ordenados. A seção de
+mensagens do guia registra as diferenças entre a junção e as
+funcionalidades de grafo. Para os critérios de entrega do TP3, consulte
+as [páginas 13 a 18 do enunciado](SCC0607022026trabalho03.pdf#page=13).

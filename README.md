@@ -1,10 +1,15 @@
 # Trabalho Introdutório — Arquivos Binários em C
 
-O projeto também contém as funcionalidades **11 a 14 do trabalho 2**, para o
-arquivo de dados PoPs e seu índice primário. As instruções, o contrato binário
-adotado e os testes dessa parte estão em [Trabalho 2](docs/TRABALHO2.md).
-As funcionalidades 8, 9 e 10 ainda não estão implementadas neste repositório.
-O restante deste README descreve o trabalho 1.
+- [Trabalho Prático 3](docs/TRABALHO3.md) — guia das funcionalidades 15 a 20,
+  com formatos, casos de validação e pontos que dependem dos testes oficiais.
+  As [referências do TP3](docs/REFERENCIAS_TRABALHO3.md) indicam o que
+  aproveitar de cada anexo.
+- [Trabalho 2](docs/TRABALHO2.md) — funcionalidades 8, 9 e 11 a 14,
+  contrato binário de PoPs e do índice primário, e testes. A funcionalidade
+  10 ainda está pendente.
+
+O restante deste README descreve o trabalho 1, que gera o arquivo
+`conectaPoPs.bin` usado pelo TP3.
 
 Projeto desenvolvido em **C** com foco na manipulação de registros em arquivos binários. O programa realiza conversão de dados em CSV, listagem, buscas com filtros, acesso por RRN, remoção lógica, inserção e atualização de registros.
 

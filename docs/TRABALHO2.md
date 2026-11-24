@@ -1,4 +1,4 @@
-# Trabalho 2 — funcionalidades 11 a 14
+# Trabalho 2 — arquivo PoPs e índice primário
 
 As anotações de aula e a análise recebida sobre o enunciado e os slides estão em
 [Referências do trabalho 2](REFERENCIAS_TRABALHO2.md), incluindo evidências,
@@ -7,17 +7,21 @@ interpretações e pontos ainda ambíguos.
 Esta parte manipula o arquivo de dados **PoPs** e o índice primário por `idPoPs`.
 As funcionalidades 1 a 7 continuam destinadas ao arquivo **conectaPoPs** do
 trabalho 1. Os dois formatos de dados são diferentes.
+O [Trabalho Prático 3](TRABALHO3.md) usa os dois arquivos de dados para
+ordenação, junção e construção do grafo.
 
 ## Funcionalidades implementadas
 
 | Código | Operação |
 |---|---|
+| 8 | Converte o CSV de PoPs em arquivo binário de dados. |
+| 9 | Cria o índice primário ordenado por `idPoPs` a partir do binário PoPs. |
 | 11 | Busca com todos os critérios informados; usa o índice quando há `idPoPs`. |
 | 12 | Remoção lógica, inclusão na lista de espaços livres e remoção da chave do índice. |
 | 13 | Inserção com Worst Fit; quando não há espaço suficiente, grava no final. |
 | 14 | Atualização no próprio espaço ou remoção e reinserção quando o registro cresce. |
 
-As quatro recebem `codigo arquivoDados.bin arquivoIndice.bin n`, seguido das
+As funcionalidades 11 a 14 recebem `codigo arquivoDados.bin arquivoIndice.bin n`, seguido das
 `n` solicitações. As funcionalidades 12 a 14 mostram, ao final, os resultados
 de `BinarioNaTela` para dados e índice, nessa ordem, depois de fechar os arquivos.
 
@@ -31,15 +35,15 @@ de `BinarioNaTela` para dados e índice, nessa ordem, depois de fechar os arquiv
 - `Source/PoPs.csv`: CSV fornecido, usado nos testes. A primeira coluna sem nome é ignorada pelos testes.
 - `tests/test_pops.py`: testes independentes de integração, com arquivos temporários.
 
-O Makefile já inclui os novos arquivos pelo padrão de diretórios. O CMake também
-lista os novos fontes. Não há chamadas novas a `ftell` nem busca binária.
-A função `BinarioNaTela` fornecida pela disciplina permanece inalterada.
+O makefile inclui os fontes pelo padrão de diretórios. O CMake lista os
+fontes de 11 a 14 e precisa incluir também os arquivos de 8 e 9 para
+acompanhar o despacho atual.
 
-## Contrato para integrar as funcionalidades 8, 9 e 10
+## Contrato binário de PoPs e do índice
 
-Essas três funcionalidades ainda não estão implementadas. As operações 11 a 14
-recebem arquivos binários previamente criados; não convertem CSV automaticamente.
-Quem implementar 8 a 10 deve usar o mesmo contrato abaixo.
+A funcionalidade 8 gera o arquivo de dados e a 9 gera seu índice.
+As operações 11 a 14 recebem esses binários já criados. A 10 permanece
+pendente.
 
 ### Cabeçalho de dados: 25 bytes
 
@@ -72,9 +76,9 @@ O cabeçalho vazio tem `topoLista = -1`, `nroRegRem = 0` e `nroPoPs = 0`.
 | após o nome | `nomePais`, seguido de `\|` | variável |
 | após os campos | sobra preenchida com `$`, se houver | variável |
 
-**Convenção adotada:** `tamanhoRegistro` contém o tamanho físico total,
-incluindo os campos de controle. A redação do enunciado favorece essa leitura,
-mas a análise dos materiais não encontrou uma fórmula explícita para PoPs.
+Na convenção adotada, `tamanhoRegistro` contém o tamanho físico total,
+incluindo os campos de controle. A [seção 21 das diretrizes](diretrizes_codigo.md#21-arquivo-de-dados-pops-trabalho-2-valores-confirmados-pelo-checksum-do-runcodes)
+registra a confirmação pelo checksum do caso conhecido da funcionalidade 8.
 
 - Registro novo: `21 + bytes(nomePoPs) + bytes(nomePais)`.
 - Próximo registro: `offsetAtual + tamanhoRegistro`.
@@ -147,7 +151,8 @@ python tests/test_pops.py --program ./programaTrab
 ```
 
 No Windows, use o caminho do executável `.exe`.
-Os testes geram os binários de entrada diretamente, pois 8 e 9 ainda não existem.
+Os testes geram os binários de entrada diretamente para exercitar 11 a 14
+de forma independente.
 Eles cobrem o CSV fornecido, buscas indexadas e sequenciais, critérios combinados,
 nulos, ausência de resultados, strings longas, crescimento dos vetores, remoções,
 Worst Fit em lista não ordenada, empate, atualização no lugar, realocação,
