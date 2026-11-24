@@ -4,8 +4,13 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include "../Headers/implementadas.h"
-#include "../Headers/auxiliares/auxiliar_2.h"
+#include "../Headers/criacao.h"
+#include "../Headers/consulta.h"
+#include "../Headers/manipulacao.h"
+#include "../Headers/pops_criacao.h"
+#include "../Headers/pops_consulta.h"
+#include "../Headers/pops_manipulacao.h"
+#include "../Headers/pops_entrada.h"
 
 // Lê a opção da funcionalidade e os argumentos, e chama a funcionalidade correspondente
 int main(void) {
@@ -13,7 +18,7 @@ int main(void) {
     char arg1[100];
     char arg2[100];
 
-    // Lemos a opção e o primeiro argumento. A funcionalidade 2 recebe só o arquivo.
+        // A opção e o primeiro argumento são lidos. A funcionalidade 2 recebe só o arquivo.
     if (scanf("%99s %99s", opcao, arg1) != 2) {
         printf("Falha no processamento do arquivo.\n");
         return 0;
@@ -23,8 +28,8 @@ int main(void) {
     // porque o scanf com "%d" não é usado aqui
     long int opcao_int = strtol(opcao, NULL, 10);
 
-    // As demais opções recebem um segundo argumento
-    if (opcao_int != 2 && scanf("%99s", arg2) != 1) {
+    // As opções 2 e 10 recebem só o arquivo; as demais recebem um segundo argumento
+    if (opcao_int != 2 && opcao_int != 10 && scanf("%99s", arg2) != 1) {
         printf("Falha no processamento do arquivo.\n");
         return 0;
     }
@@ -72,6 +77,9 @@ int main(void) {
         case 9:
             // arg1 é o arquivo de dados PoPs e arg2 é o arquivo de índice a ser criado
             funcionalidade9(arg1, arg2);
+            break;
+        case 10:
+            funcionalidade10(arg1);
             break;
         case 11:
             funcionalidade11(arg1, arg2, quantidade_pops);

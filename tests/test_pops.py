@@ -1,3 +1,4 @@
+# José Eduardo Constantino Nordemann - N usp: 16877738
 """Testes de integracao das funcionalidades 11 a 14, sem depender de 8 a 10.
 
 Uso: python tests/test_pops.py --program caminho/do/programaTrab
@@ -61,9 +62,9 @@ class PoPsTests(unittest.TestCase):
         self.index.write_bytes(b"1" + b"".join(INDEX.pack(*entry) for entry in active))
         return offsets
 
-    def run_program(self, option, requests, body="", success=True):
+    def run_program(self, option, requests, body="", success=True, files="dados.bin indice.bin"):
         result = subprocess.run(
-            [str(PROGRAM)], input=f"{option} dados.bin indice.bin {requests}\n{body}",
+            [str(PROGRAM)], input=f"{option} {files} {requests}\n{body}",
             cwd=self.folder, text=True, encoding="utf-8", capture_output=True, timeout=10,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -123,18 +124,20 @@ class PoPsTests(unittest.TestCase):
         self.create(rows)
         original = self.data.read_bytes(), self.index.read_bytes()
         body = "".join(f"1 idPoPs {r[0]}\n" for r in rows)
-        expected = "".join(f"{id_} {name or 'NULO'} {country or 'NULO'} {code or 'NULO'}\n"
-                           for id_, name, country, code in rows)
-        self.assertEqual(self.run_program(11, len(rows), body), expected)
+        # Cada solicitação gera seu bloco; uma linha em branco separa um bloco do próximo
+        expected = "\n".join(f"{id_} {name or 'NULO'} {country or 'NULO'} {code or 'NULO'}\n"
+                              for id_, name, country, code in rows)
+        self.assertEqual(self.run_program(11, len(rows), body), expected + "\n")
         cases = [("nomePais", "BRAZIL", 2), ("nomePoPs", "", 1), ("siglaPais", "", 3)]
         body = "".join(f'1 {key} ' + (f'"{value}"' if value else "NULO") + "\n"
                        for key, value, _ in cases)
-        expected = ""
+        blocks = []
         for _, value, col in cases:
             matches = [row for row in rows if row[col] == value]
-            expected += "".join(f"{id_} {name or 'NULO'} {country or 'NULO'} {code or 'NULO'}\n"
-                                for id_, name, country, code in matches) or MISSING
-        self.assertEqual(self.run_program(11, len(cases), body), expected)
+            blocks.append("".join(f"{id_} {name or 'NULO'} {country or 'NULO'} {code or 'NULO'}\n"
+                                  for id_, name, country, code in matches) or MISSING)
+        expected = "\n".join(blocks)
+        self.assertEqual(self.run_program(11, len(cases), body), expected + "\n")
         self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
         self.inspect()
 
@@ -144,14 +147,15 @@ class PoPsTests(unittest.TestCase):
                 '2 idPoPs 7 nomePais "FRANCE"\n'
                 '1 idPoPs 999\n1 idPoPs 2\n')
         self.assertEqual(self.run_program(11, 4, body),
-                         "7 CAMPINA GRANDE BRAZIL BR\n" + MISSING * 2 + "2 PARIS FRANCE FR\n")
+                         "\n".join(["7 CAMPINA GRANDE BRAZIL BR\n", MISSING, MISSING,
+                                    "2 PARIS FRANCE FR\n"]) + "\n")
 
     def test_indexed_query_does_not_scan_unrelated_record(self):
         offsets = self.create([(1, "A", "B", "BR"), (2, "X", "Y", "CL")])
         raw = bytearray(self.data.read_bytes())
         raw[offsets[1] + FIXED.size:offsets[2]] = b"?" * (offsets[2] - offsets[1] - FIXED.size)
         self.data.write_bytes(raw)
-        self.assertEqual(self.run_program(11, 1, "1 idPoPs 2\n"), "2 X Y CL\n")
+        self.assertEqual(self.run_program(11, 1, "1 idPoPs 2\n"), "2 X Y CL\n\n")
         self.assertEqual(self.run_program(11, 1, '1 nomePais "Y"\n'), FAILURE)
 
     def test_delete_multiple_requests_no_match_and_repeated_match(self):
@@ -161,7 +165,7 @@ class PoPsTests(unittest.TestCase):
         self.assertEqual(active, {})
         self.assertEqual(len(chain), 3)
         self.assertEqual(self.index.read_bytes(), b"1")
-        self.assertEqual(self.run_program(11, 1, '1 nomePais "BRAZIL"\n'), MISSING)
+        self.assertEqual(self.run_program(11, 1, '1 nomePais "BRAZIL"\n'), MISSING + "\n")
 
     def test_worst_fit_unordered_list_middle_and_tail(self):
         offsets = self.create([(1, "A", "", ""), (2, "B", "", ""), (3, "C", "", "")],
@@ -228,7 +232,7 @@ class PoPsTests(unittest.TestCase):
         self.assertEqual(active[10]["size"], 60)
         self.assertEqual(chain, [offsets[1], offsets[3]])
         self.assertEqual(self.run_program(11, 2, '1 idPoPs 1\n1 idPoPs 10\n'),
-                         MISSING + "10 A LONG NAME BRAZIL NULO\n")
+                         "\n".join([MISSING, "10 A LONG NAME BRAZIL NULO\n"]) + "\n")
 
     def test_update_many_relocations_and_next_request_sees_changes(self):
         self.create([(1, "A", "B", "BR"), (2, "C", "B", "BR")])
@@ -259,7 +263,7 @@ class PoPsTests(unittest.TestCase):
 
     def test_empty_files_and_zero_requests(self):
         self.create()
-        self.assertEqual(self.run_program(11, 1, "1 idPoPs 5\n"), MISSING)
+        self.assertEqual(self.run_program(11, 1, "1 idPoPs 5\n"), MISSING + "\n")
         for option in (12, 13, 14):
             self.run_program(option, 0)
             self.assertEqual(self.inspect(), ({}, []))
@@ -284,14 +288,57 @@ class PoPsTests(unittest.TestCase):
 
     def test_duplicate_ids_do_not_get_written(self):
         self.create([(1, "A", "", ""), (2, "B", "", "")])
-        payload = self.data.read_bytes()[HEADER.size:]
+        original = self.data.read_bytes(), self.index.read_bytes()
         self.assertEqual(self.run_program(13, 1, '1 "DUPLICATE" NULO NULO\n', success=False), FAILURE)
-        self.assertEqual(self.data.read_bytes()[HEADER.size:], payload)
-        self.assertEqual(self.data.read_bytes()[:1], b"0")
-        self.assertEqual(self.index.read_bytes()[:1], b"0")
-        self.create([(1, "A", "", ""), (2, "B", "", "")])
+        self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
         self.assertEqual(self.run_program(14, 1, '1 idPoPs 1\n1 idPoPs 2\n', success=False), FAILURE)
-        self.assertEqual(self.data.read_bytes()[HEADER.size:], payload)
+        self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
+        self.assertEqual(self.run_program(14, 1, '1 nomePais NULO\n1 idPoPs 3\n', success=False), FAILURE)
+        self.assertEqual((self.data.read_bytes(), self.index.read_bytes()), original)
+
+    def test_duplicate_ids_keep_earlier_requests_consistent(self):
+        self.create([(1, "A", "", ""), (2, "B", "", "")])
+        body = '3 "C" NULO NULO\n3 "DUPLICATE" NULO NULO\n'
+        self.assertEqual(self.run_program(13, 2, body, success=False), FAILURE)
+        active, _ = self.inspect()
+        self.assertEqual(active[3]["name"], "C")
+
+        body = '1 idPoPs 3\n1 idPoPs 4\n1 idPoPs 2\n1 idPoPs 4\n'
+        self.assertEqual(self.run_program(14, 2, body, success=False), FAILURE)
+        active, _ = self.inspect()
+        self.assertEqual(set(active), {1, 2, 4})
+        self.assertEqual(active[4]["name"], "C")
+
+    def test_csv_normalizes_blank_fields_and_rejects_duplicate_ids(self):
+        csv_path = self.folder / "entrada.csv"
+        header = "idPoPs,siglaPais,nomePoPs,nomePais\n"
+        rows = "1, , ,\t\n2,,NOVA CIDADE,BRASIL\n"
+        csv_path.write_text(header + rows, encoding="utf-8")
+        self.run_program(8, 0, files="entrada.csv dados.bin")
+        self.run_program(9, 0)
+        active, _ = self.inspect()
+        self.assertEqual((active[1]["name"], active[1]["country"], active[1]["code"]), ("", "", ""))
+        self.assertEqual((active[2]["name"], active[2]["code"]), ("NOVA CIDADE", ""))
+
+        csv_path.write_text(header + rows + "1,BR,REPETIDO,BRASIL\n", encoding="utf-8")
+        self.assertEqual(self.run_program(8, 0, files="entrada.csv dados.bin"), FAILURE)
+        status, _, _, _, _ = HEADER.unpack_from(self.data.read_bytes())
+        self.assertEqual(status, b"0")
+        self.assertNotIn(b"REPETIDO", self.data.read_bytes())
+
+    def test_index_creation_rejects_invalid_record_control(self):
+        offsets = self.create([(1, "A", "", ""), (2, "B", "", "")], removed=(1,))
+        original = self.data.read_bytes()
+        self.run_program(9, 0)
+        self.inspect()
+        index = self.index.read_bytes()
+        for flag, size in ((b"x", 22), (b"0", 20), (b"0", 23)):
+            with self.subTest(flag=flag, size=size):
+                raw = bytearray(original)
+                CONTROL.pack_into(raw, offsets[2], flag, size, -1)
+                self.data.write_bytes(raw)
+                self.assertEqual(self.run_program(9, 0), FAILURE)
+                self.assertEqual(self.index.read_bytes(), index)
 
     def test_invalid_input_rejected(self):
         self.create()

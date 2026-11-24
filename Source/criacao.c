@@ -1,14 +1,19 @@
+// José Eduardo Constantino Nordemann - N usp: 16877738
 /*
  * João L A Nogueira - N usp: 16986970
  */
+
+#include "../Headers/criacao.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../Headers/registros.h"
-#include "../../Headers/fornecidas.h"
-#include "../../Headers/implementadas.h"
-#include "../../Headers/auxiliares/auxiliar_1.h"
+#include "../Headers/fornecidas.h"
+#include "../Headers/registros.h"
+#include "../Headers/cabecalho.h"
+#include "../Headers/registro.h"
+#include "../Headers/erros.h"
 
 // Lê os registros de um arquivo CSV e grava no arquivo binário,
 // criando também o cabeçalho do arquivo.
@@ -41,10 +46,10 @@ void funcionalidade1(const char *csv, const char *binario) {
 
         // Valores padrão para os campos de controle e para os campos
         // que podem estar vazios no CSV (velocidade e unidadeMedida)
-        dados.removido = '0';
+        dados.removido = REGISTRO_ATIVO;
         dados.encadeamentoPilha = -1;
-        dados.velocidade = -1;
-        dados.unidadeMedida = '$';
+        dados.velocidade = VALOR_NULO_INTEIRO;
+        dados.unidadeMedida = VALOR_NULO_CHAR;
 
         // Separa os campos trocando cada vírgula por '\0'.
         // Isso é feito manualmente porque velocidade e unidadeMedida podem estar vazios.
@@ -73,7 +78,7 @@ void funcionalidade1(const char *csv, const char *binario) {
         escrever_dados(dados, escrita);
 
         // Cada registro ocupa um novo RRN.
-        // O enunciado garante que os pares não se repetem, então cada registro também adiciona um novo par.
+        // O enunciado garante que os pares não se repetem: cada registro adiciona um par novo.
         cabecalho.proxRRN++;
         cabecalho.nroPares++;
     }

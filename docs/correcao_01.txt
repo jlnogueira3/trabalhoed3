@@ -1,9 +1,0 @@
-Comentários sobre a documentação interna: ➔ Faltam comentários explicativos no meio do código em trechos que sejam importantes para explicar o funcionamento do
-programa. Por exemplo: antes de loops relevantes ou antes de manipular diretamente o disco. ➔ Tem alguns trechos que ficam sem comentário e explicação, principalmente no meio das funções
-❖ Comentários sobre a modularização: ➔ Vocês fazem o mesmo procedimento (ler cabeçalho por exemplo) de maneiras diferentes ao longo das 7 funcionalidades, modularizar significa também padronizar e deixar isso mais fácil.
-❖ Comentários sobre a implementação: ➔ Modo de abertura do arquivo (fopen) incorreto. Deve-se usar os modos adequados a cada funcionalidade a depender do que
-será feito com o arquivo: criar arquivo binário com wb ou wb+, ler arquivo binário com rb, modificar com rb+, assim por adiante. ➔ Tem um w+b desnecessário (na func1), se for só escrita usem wb; O cabeçalho não deve ser criado no main se depois vocês
-inicializam ou alteram ele de novo (funcionalidades 1, 2 e 3); Verificar o status do cabeçalho antes de ler ele por inteiro; Nas
-funcionalidades 2 e 3 não precisa inicializar os registros com valores; Ao identificar um registro removido, seu conteúdo não deve ser
-lido, e os bytes restantes devem ser pulados com fseek; A inicialização com valores do cabeçalho e dos registros mesmo quando
-serão lidos/escritos é desnecessária, tirando a funcionalidade 6.
